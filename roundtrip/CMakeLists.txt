@@ -7,6 +7,6 @@ project(roundtrip C)
 
 include_directories(./include/)
 
-add_executable (master ./src/roundtrip_master.c ./src/lib.c)
+add_executable (master ./src/roundtrip_master.c ./src/lib.c ./src/network.c)
 target_compile_options(master PRIVATE -Wall -Wextra -Wpedantic) #-Werror
 #target_link_libraries (master)
