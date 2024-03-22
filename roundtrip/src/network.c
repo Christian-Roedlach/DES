@@ -3,32 +3,40 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/time.h>
+#include <signal.h>
 
 int socket_master(nw_descriptor_t *descriptor) 
 {
     int retval = EXIT_FAILURE;
-    socklen_t timeout_len = sizeof(descriptor->timeout);
 
     // Creating socket file descriptor
-	if ( (descriptor->socket_file_descriptor = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) 
+	if ( (descriptor->socket_file_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) 
     {
 		perror("Socket creation failed");
 		retval = EXIT_FAILURE;
 	} 
-    else if (-1 == getsockopt(descriptor->socket_file_descriptor,
+    else if (bind(descriptor->socket_file_descriptor, 
+            (struct sockaddr *) &descriptor->master_nw_socket_addr,
+            sizeof (descriptor->master_nw_socket_addr)))
+    {
+        perror("Socket binding failed");
+		retval = EXIT_FAILURE;
+    }
+    else if (-1 == setsockopt(descriptor->socket_file_descriptor,
             SOL_SOCKET,
             SO_RCVTIMEO,
-            (char *) &descriptor->timeout,
-            &timeout_len))
+            (void *) &descriptor->timeout,
+            sizeof(descriptor->timeout)))
     {
         perror("Setting socket option SO_RCVTIMEO failed");
 		retval = EXIT_FAILURE;
     } 
-    else if (-1 == getsockopt(descriptor->socket_file_descriptor,
+    else if (-1 == setsockopt(descriptor->socket_file_descriptor,
             SOL_SOCKET,
             SO_SNDTIMEO,
             (void *) &descriptor->timeout,
-            &timeout_len))
+            sizeof(descriptor->timeout)))
     {
         perror("Setting socket option SO_SNDTIMEO failed");
 		retval = EXIT_FAILURE;
@@ -81,7 +89,7 @@ int send_and_receive_roundtrip(nw_descriptor_t *descriptor)
     len = sendto(descriptor->socket_file_descriptor,
         	(const char *) &descriptor->message_snd,
             sizeof(descriptor->message_snd),
-            0,  // flag - on reply, use MSG_CONFIRM
+            MSG_CONFIRM,  // flag - on reply, use MSG_CONFIRM
             (const struct sockaddr *) &descriptor->slave_nw_socket_addr,
             sockaddr_len);
     
@@ -104,3 +112,4 @@ int send_and_receive_roundtrip(nw_descriptor_t *descriptor)
 
     return retval;
 }
+

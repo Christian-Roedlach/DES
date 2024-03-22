@@ -22,6 +22,9 @@ int main (int argc, char** argv)
         .recv_nw_socket_addr = {0},
         .timeout = {TIMEOUT_S, TIMEOUT_US}
     };
+    setlinebuf(stdout);
+
+    printf("Timeout is set to %d s and %d us\n", TIMEOUT_S, TIMEOUT_US);
 
     retval = parse_arguments(argc, argv, &nw_desc);
        
@@ -45,6 +48,9 @@ int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc)
     {
         /* parse IP address and port */
         retval = set_socket_address(argv[1], argv[2], &nw_desc->slave_nw_socket_addr);
+        
+        if (EXIT_SUCCESS == retval)
+            retval = set_socket_address("0.0.0.0", argv[2], &nw_desc->master_nw_socket_addr);
 
         /* parse number of messages */
         if (EXIT_SUCCESS == retval)
@@ -126,6 +132,9 @@ int do_roundtrip_measurement (nw_descriptor_t *nw_desc, double *result_sec)
         retval = send_and_receive_roundtrip(nw_desc);
 
     if (EXIT_SUCCESS == retval)
+        retval = clock_gettime(CLOCK_MONOTONIC, &timestamp_end);
+
+    if (EXIT_SUCCESS == retval)
     {
         timespec_diff(&timestamp_end, &nw_desc->message_snd.timestamp, &timestamp_diff);
         timespec_to_double(&timestamp_diff, result_sec);
@@ -148,15 +157,40 @@ int do_roundtrip_sequence (nw_descriptor_t *nw_desc)
 
         if (EXIT_SUCCESS == retval)
         {
-            /* ToDo: check message */
-            fprintf(stdout, "Msg %6d: Measurment result: %11.9lf s\n", 
-                    nw_desc->message_rcv.id, time_measured);
+            if (nw_desc->message_rcv.id == nw_desc->message_snd.id)
+                if(nw_desc->message_rcv.timestamp.tv_nsec == nw_desc->message_snd.timestamp.tv_nsec)
+                    if(0 == strncmp(nw_desc->message_rcv.control, "ACK", sizeof(nw_desc->message_rcv.control)))
+                    {
+                        retval = EXIT_SUCCESS;
+                        fprintf(stdout, "Msg %6d: Measurment result: %11.9lf s\n", 
+                                nw_desc->message_rcv.id, time_measured);
+                    }    
+                    else
+                    {
+                        retval = EXIT_FAILURE;
+                        fprintf(stderr, "ERROR Msg %6d: received control msg = %s\n",
+                                nw_desc->message_snd.id,
+                                nw_desc->message_rcv.control);
+                    }
+                else
+                {
+                    retval = EXIT_FAILURE;
+                    fprintf(stderr, "ERROR Msg %6d: comparing sent timestamp failed\n",
+                            nw_desc->message_snd.id);
+                }
+            else
+            {
+                retval = EXIT_FAILURE;
+                fprintf(stderr, "ERROR Msg %6d: comparing Msg id failed! rectived: %d\n",
+                        nw_desc->message_snd.id,
+                        nw_desc->message_rcv.id);
+            }
         }
         else
-        /* break if not successful - might be removed */
         {
             fprintf(stderr, "Error executing measurement: %s\n", strerror(errno));
-            break;
+            /* break if not successful - might be removed */
+            // break;
         }
     }
 
