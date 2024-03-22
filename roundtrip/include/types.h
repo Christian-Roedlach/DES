@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <time.h>
+#include <errno.h>
 
 typedef struct {
     struct timespec timestamp;
