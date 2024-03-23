@@ -36,8 +36,8 @@ int main (int argc, char** argv)
         retval = do_roundtrip_sequence (&nw_desc);
     
     //retval = test_gettime();
-
-    retval = close(nw_desc.socket_file_descriptor);
+    if (-1 != nw_desc.socket_file_descriptor)
+        retval = close(nw_desc.socket_file_descriptor);
 
     if (EXIT_SUCCESS != retval)
         fprintf(stderr, "Error occured: %s\n\n", strerror( errno ));
