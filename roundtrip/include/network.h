@@ -16,6 +16,7 @@ typedef struct {
 	struct sockaddr_in recv_nw_socket_addr;
 	struct timeval timeout;
 	uint32_t nr_of_messages;
+	char *logfile_name;
 } nw_descriptor_t;
 
 int socket_master(nw_descriptor_t *descriptor);

@@ -63,6 +63,12 @@ int set_socket_address(char *ip_address, char *port,
             port_u16 = (uint16_t) parsed_port;
             retval = EXIT_SUCCESS;
         }    
+    } 
+    /* handle case of intentionally setting port to 0 (refer to man strtol) */
+    else if (strncmp(port, "0", 2) == 0)
+    {
+        port_u16 = 0;
+        retval = EXIT_SUCCESS;
     }
 
     if (EXIT_SUCCESS == retval)

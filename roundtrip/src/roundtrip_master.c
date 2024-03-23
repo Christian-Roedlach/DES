@@ -4,6 +4,7 @@
 #include "settings.h"
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 int test_gettime (void);
 int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc);
@@ -36,6 +37,11 @@ int main (int argc, char** argv)
     
     //retval = test_gettime();
 
+    retval = close(nw_desc.socket_file_descriptor);
+
+    if (EXIT_SUCCESS != retval)
+        fprintf(stderr, "Error occured: %s\n\n", strerror( errno ));
+
     return retval;
 }
 
@@ -44,13 +50,18 @@ int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc)
     int retval = EXIT_FAILURE;
     int64_t parsed_numbers; 
 
-    if (argc == 4)
+    if (argc == 5)
     {
         /* parse IP address and port */
         retval = set_socket_address(argv[1], argv[2], &nw_desc->slave_nw_socket_addr);
         
         if (EXIT_SUCCESS == retval)
-            retval = set_socket_address("0.0.0.0", argv[2], &nw_desc->master_nw_socket_addr);
+        {
+            if (DEBUG_SET_RCV_PORT_TO_SND_PORT)
+                retval = set_socket_address("0.0.0.0", "12345", &nw_desc->master_nw_socket_addr);
+            else /* port is set automatically by bind command */
+                retval = set_socket_address("0.0.0.0", "0", &nw_desc->master_nw_socket_addr);
+        }
 
         /* parse number of messages */
         if (EXIT_SUCCESS == retval)
@@ -67,13 +78,17 @@ int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc)
                     retval = EXIT_SUCCESS;
                 }    
             }
-        }        
+        }
+
+        /* parse number of messages */
+        if (EXIT_SUCCESS == retval)
+            nw_desc->logfile_name = argv[4];    
     }
 
     if (EXIT_SUCCESS != retval)
     {
         fprintf(stderr, "Error occured: %s\n\n", strerror( errno ));
-        fprintf(stderr, "Usage:  ./master <Slave IPv4 Address> <Slave Port Number> <Nr. of messages>\n\n");
+        fprintf(stderr, "Usage:  ./master <Slave IPv4 Address> <Slave Port Number> <Nr. of messages> <log filename>\n\n");
     }
 
     return retval;
@@ -148,51 +163,94 @@ int do_roundtrip_sequence (nw_descriptor_t *nw_desc)
     int retval = EXIT_FAILURE;
     size_t i = 0;
     double time_measured = 0;
+    data_cache_t *data_cache = calloc(NR_ELEMENTS_TO_CACHE, sizeof(data_cache_t));
+    FILE *logfile = fopen(nw_desc->logfile_name, "w");
 
-    for (i = 0; i < nw_desc->nr_of_messages; i++)
+    if(NULL != data_cache && NULL != logfile)
     {
-        nw_desc->message_snd.id = i;
-
-        retval = do_roundtrip_measurement(nw_desc, &time_measured);
-
-        if (EXIT_SUCCESS == retval)
+        fprintf(logfile, CSV_FIELDS "\n");
+        for (i = 0; i < nw_desc->nr_of_messages; i++)
         {
-            if (nw_desc->message_rcv.id == nw_desc->message_snd.id)
-                if(nw_desc->message_rcv.timestamp.tv_nsec == nw_desc->message_snd.timestamp.tv_nsec)
-                    if(0 == strncmp(nw_desc->message_rcv.control, "ACK", sizeof(nw_desc->message_rcv.control)))
-                    {
-                        retval = EXIT_SUCCESS;
-                        fprintf(stdout, "Msg %6d: Measurment result: %11.9lf s\n", 
-                                nw_desc->message_rcv.id, time_measured);
-                    }    
+            nw_desc->message_snd.id = i;
+
+            retval = do_roundtrip_measurement(nw_desc, &time_measured);
+
+            if (EXIT_SUCCESS == retval)
+            {
+                if (nw_desc->message_rcv.id == nw_desc->message_snd.id)
+                    if(nw_desc->message_rcv.timestamp.tv_nsec == nw_desc->message_snd.timestamp.tv_nsec)
+                        if(CHECK_ACK)
+                        {
+                            retval = EXIT_SUCCESS;
+                            if (STDOUT_LOGGING_ENABLED)
+                                fprintf(stdout, "Msg %6d: Measurment result: %11.9lf s\n", 
+                                        nw_desc->message_rcv.id, time_measured);
+                        }    
+                        else
+                        {
+                            retval = EXIT_FAILURE;
+                            fprintf(stderr, "ERROR Msg %6d: received control msg = %s\n",
+                                    nw_desc->message_snd.id,
+                                    nw_desc->message_rcv.control);
+                        }
                     else
                     {
                         retval = EXIT_FAILURE;
-                        fprintf(stderr, "ERROR Msg %6d: received control msg = %s\n",
-                                nw_desc->message_snd.id,
-                                nw_desc->message_rcv.control);
+                        fprintf(stderr, "ERROR Msg %6d: comparing sent timestamp failed\n",
+                                nw_desc->message_snd.id);
                     }
                 else
                 {
                     retval = EXIT_FAILURE;
-                    fprintf(stderr, "ERROR Msg %6d: comparing sent timestamp failed\n",
-                            nw_desc->message_snd.id);
+                    fprintf(stderr, "ERROR Msg %6d: comparing Msg id failed! rectived: %d\n",
+                            nw_desc->message_snd.id,
+                            nw_desc->message_rcv.id);
                 }
+            }
             else
             {
+                fprintf(stderr, "Error executing measurement: %s\n", strerror(errno));
                 retval = EXIT_FAILURE;
-                fprintf(stderr, "ERROR Msg %6d: comparing Msg id failed! rectived: %d\n",
-                        nw_desc->message_snd.id,
-                        nw_desc->message_rcv.id);
+                /* break if not successful - might be removed */
+                // break;
             }
+
+            if ((i > 0) && (i % NR_ELEMENTS_TO_CACHE == 0))
+            {
+                for (size_t j = 0; j < NR_ELEMENTS_TO_CACHE; j++)
+                {
+                    fprintf(logfile, "%10d%c%11.9lf\n", data_cache[j].id, CSV_SEPARATOR, data_cache[j].roundtrip_time);
+                }
+                memset(data_cache, 0, NR_ELEMENTS_TO_CACHE * sizeof(data_cache_t));
+            }
+
+            data_cache[i % NR_ELEMENTS_TO_CACHE].id = nw_desc->message_snd.id;
+            if (EXIT_SUCCESS == retval)
+                data_cache[i % NR_ELEMENTS_TO_CACHE].roundtrip_time = time_measured;
+            else
+                data_cache[i % NR_ELEMENTS_TO_CACHE].roundtrip_time = NAN;
         }
-        else
+
+        size_t remaining_cache_elements = i % NR_ELEMENTS_TO_CACHE;
+
+        if (0 == remaining_cache_elements && i > 0)
+            remaining_cache_elements = NR_ELEMENTS_TO_CACHE;
+
+        for (size_t j = 0; j < remaining_cache_elements; j++)
         {
-            fprintf(stderr, "Error executing measurement: %s\n", strerror(errno));
-            /* break if not successful - might be removed */
-            // break;
+            fprintf(logfile, "%10d%c%11.9lf\n", data_cache[j].id, CSV_SEPARATOR, data_cache[j].roundtrip_time);
         }
+
     }
+    else
+    {
+        fprintf(stderr, "Error occured: %s\n", strerror(errno));
+    }
+
+    if (NULL != logfile)
+        fclose(logfile);
+    if (NULL != data_cache)
+        free(data_cache);
 
     return retval;
 }
