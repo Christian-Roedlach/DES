@@ -6,10 +6,15 @@
 #include <string.h>
 #include <math.h>
 
+#define USAGE "Usage:  \
+./master <Slave IPv4 Address> <Slave Port Number> <Nr. of messages> <log filename>\n\n"
+
 int test_gettime (void);
 int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc);
 int do_roundtrip_measurement (nw_descriptor_t *nw_desc, double *result_sec);
 int do_roundtrip_sequence (nw_descriptor_t *nw_desc);
+
+
 
 int main (int argc, char** argv)
 {
@@ -25,16 +30,17 @@ int main (int argc, char** argv)
     };
     setlinebuf(stdout);
 
-    printf("Timeout is set to %d s and %d us\n", TIMEOUT_S, TIMEOUT_US);
-
     retval = parse_arguments(argc, argv, &nw_desc);
        
     if (EXIT_SUCCESS == retval)
         retval = socket_master(&nw_desc);
 
     if (EXIT_SUCCESS == retval)
-        retval = do_roundtrip_sequence (&nw_desc);
-    
+    {
+        fprintf(stdout, "Timeout is set to %d s and %d us\n", TIMEOUT_S, TIMEOUT_US);
+         retval = do_roundtrip_sequence (&nw_desc);
+    }
+         
     //retval = test_gettime();
     if (-1 != nw_desc.socket_file_descriptor)
         retval = close(nw_desc.socket_file_descriptor);
@@ -88,7 +94,7 @@ int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc)
     if (EXIT_SUCCESS != retval)
     {
         fprintf(stderr, "Error occured: %s\n\n", strerror( errno ));
-        fprintf(stderr, "Usage:  ./master <Slave IPv4 Address> <Slave Port Number> <Nr. of messages> <log filename>\n\n");
+        fprintf(stderr, USAGE);
     }
 
     return retval;
