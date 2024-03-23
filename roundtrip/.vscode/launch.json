@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/master",
-            "args": ["127.0.0.1", "12345", "10", "log/test.log"],
+            "args": ["127.0.0.1", "12345", "10", "../log/testdebug.log"],
             //"args": ["192.168.3.33", "12345", "10"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
