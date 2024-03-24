@@ -24,15 +24,15 @@ Connecting to slave on
 
 ## Notes
 
-Git store credentials:
+### Git store credentials:
 
     git config --global credential.helper store
 
-Build/Debug on target:
+### Build/Debug on target:
     
     sudo apt install cmake
 
-### install VScode plugins:
+#### install VScode plugins:
 
 - CMake
 - CMake Tools
