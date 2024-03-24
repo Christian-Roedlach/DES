@@ -22,3 +22,20 @@ Connecting to slave on
     ./master 127.0.0.1 12345 5 ../log/test.csv
 ```
 
+## Notes
+
+Git store credentials:
+
+    git config --global credential.helper store
+
+Build/Debug on target:
+    
+    sudo apt install cmake
+
+### install VScode plugins:
+
+- CMake
+- CMake Tools
+- C/C++
+- C/C++ Extension Pack
+
