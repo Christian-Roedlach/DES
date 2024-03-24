@@ -64,7 +64,7 @@ int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc)
         if (EXIT_SUCCESS == retval)
         {
             if (DEBUG_SET_RCV_PORT_TO_SND_PORT)
-                retval = set_socket_address("0.0.0.0", "12345", &nw_desc->master_nw_socket_addr);
+                retval = set_socket_address("0.0.0.0", argv[2], &nw_desc->master_nw_socket_addr);
             else /* port is set automatically by bind command */
                 retval = set_socket_address("0.0.0.0", "0", &nw_desc->master_nw_socket_addr);
         }
