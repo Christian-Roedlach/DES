@@ -39,3 +39,7 @@ Connecting to slave on
 - C/C++
 - C/C++ Extension Pack
 
+#### Static IP on RPi:
+
+https://raspberrypi-guide.github.io/networking/set-up-static-ip-address#:~:text=Get%20a%20static%20IP-address,-To%20get%20a&text=You%20can%20also%20use%20the,ip-address%2C%20e.g.%20192.168.
+
