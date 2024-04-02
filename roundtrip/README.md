@@ -43,3 +43,8 @@ Connecting to slave on
 
 https://raspberrypi-guide.github.io/networking/set-up-static-ip-address#:~:text=Get%20a%20static%20IP-address,-To%20get%20a&text=You%20can%20also%20use%20the,ip-address%2C%20e.g.%20192.168.
 
+#### Wi-Fi headless on RPi:
+
+https://forums.raspberrypi.com/viewtopic.php?t=360175
+
+
