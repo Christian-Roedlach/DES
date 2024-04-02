@@ -142,11 +142,14 @@ int test_gettime (void)
 int do_roundtrip_measurement (nw_descriptor_t *nw_desc, double *result_sec)
 {
     int retval = EXIT_FAILURE;
+    struct timespec timestamp_start = {0};
     struct timespec timestamp_end = {0};
     struct timespec timestamp_diff = {0};
 
     strncpy(nw_desc->message_snd.control, "REQ", sizeof(nw_desc->message_snd.control));
-    retval = clock_gettime(CLOCK_MONOTONIC, &nw_desc->message_snd.timestamp);
+    retval = clock_gettime(CLOCK_MONOTONIC, &timestamp_start);
+
+    nw_desc->message_snd.timestamp = timestamp_start;
     
     /* message number has to be set in calling function ! */
     if (EXIT_SUCCESS == retval)
@@ -157,7 +160,7 @@ int do_roundtrip_measurement (nw_descriptor_t *nw_desc, double *result_sec)
 
     if (EXIT_SUCCESS == retval)
     {
-        timespec_diff(&timestamp_end, &nw_desc->message_snd.timestamp, &timestamp_diff);
+        timespec_diff(&timestamp_end, &timestamp_start, &timestamp_diff);
         timespec_to_double(&timestamp_diff, result_sec);
     }
 

@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-typedef struct {
+typedef struct  __attribute__ ((__packed__)) {
     struct timespec timestamp;
     uint32_t id;
     char control[4];
