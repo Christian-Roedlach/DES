@@ -1,0 +1,4 @@
+/home/christophvock/DES/roundtrip/src/CMakeFiles/master.dir
+/home/christophvock/DES/roundtrip/src/CMakeFiles/slave.dir
+/home/christophvock/DES/roundtrip/src/CMakeFiles/edit_cache.dir
+/home/christophvock/DES/roundtrip/src/CMakeFiles/rebuild_cache.dir

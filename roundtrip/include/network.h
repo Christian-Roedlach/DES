@@ -23,5 +23,7 @@ int socket_master(nw_descriptor_t *descriptor);
 int set_socket_address(char *ip_address, char *port, 
         struct sockaddr_in *addr);
 int send_and_receive_roundtrip(nw_descriptor_t *descriptor);
+int recieve_and_send_roundtrip(nw_descriptor_t *descriptor);
+int socket_slave(nw_descriptor_t *descriptor);
 
 #endif // NETWORK_H

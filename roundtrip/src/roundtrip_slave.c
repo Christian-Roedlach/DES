@@ -1,71 +1,77 @@
+#include "types.h"
+#include "lib.h"
+#include "network.h"
+#include "settings.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
+#include <math.h>
 
-// Definition des Structs
-typedef enum {
-    REQUEST,
-    RESPONSE,
-    ACK
-} MessageType;
+#define USAGE "Usage:  \
+./slave <Slave Port Number>\n\n"
 
-typedef struct {
-    long timestamp;
-    int message_id;
-    MessageType type;
-} Message;
 
-int main() {
-    // Erstellen des UDP-Sockets
-    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd < 0) {
-        perror("Fehler beim Erstellen des Sockets");
-        exit(EXIT_FAILURE);
+int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc);
+
+
+int main (int argc, char** argv)
+{
+    int retval = EXIT_FAILURE;
+    nw_descriptor_t nw_desc = {
+        .message_snd = {{0}},
+        .message_rcv = {{0}},
+        .socket_file_descriptor = -1,
+        .master_nw_socket_addr = {0},
+        .slave_nw_socket_addr = {0},
+        .recv_nw_socket_addr = {0},
+        .timeout = {TIMEOUT_S, TIMEOUT_US}
+    };
+    setlinebuf(stdout);
+
+    retval = parse_arguments(argc, argv, &nw_desc);
+       
+    if (EXIT_SUCCESS == retval)
+        retval = socket_slave(&nw_desc);
+
+    if (EXIT_SUCCESS == retval)
+    {
+        while(1)
+		{
+			retval = recieve_and_send_roundtrip(&nw_desc);
+			
+		}
     }
+         
+    //retval = test_gettime();
+    if (-1 != nw_desc.socket_file_descriptor)
+        retval = close(nw_desc.socket_file_descriptor);
 
-    struct sockaddr_in server_addr, client_addr;
-    memset(&server_addr, 0, sizeof(server_addr));
-    memset(&client_addr, 0, sizeof(client_addr));
+    if (EXIT_SUCCESS != retval)
+        fprintf(stderr, "Error occured: %s\n\n", strerror( errno ));
 
-    // Serveradresse konfigurieren
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_addr.sin_port = htons(12345); // Beispielport
-
-    // Binden des Sockets an die Serveradresse
-    if (bind(sockfd, (const struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("Fehler beim Binden des Sockets");
-        exit(EXIT_FAILURE);
-    }
-
-    printf("Warte auf Nachrichten...\n");
-
-    while (1) {
-        Message received_msg;
-        socklen_t len = sizeof(client_addr);
-
-        // Empfangen der Nachricht
-        if (recvfrom(sockfd, &received_msg, sizeof(received_msg), 0, (struct sockaddr *)&client_addr, &len) < 0) {
-            perror("Fehler beim Empfangen der Nachricht");
-            exit(EXIT_FAILURE);
-        }
-
-        // Ändern des Enum-Werts auf ACK
-        received_msg.type = ACK;
-
-        // Zurücksenden der modifizierten Nachricht
-        if (sendto(sockfd, &received_msg, sizeof(received_msg), 0, (const struct sockaddr *)&client_addr, len) < 0) {
-            perror("Fehler beim Zurücksenden der Nachricht");
-            exit(EXIT_FAILURE);
-        }
-
-        printf("Nachricht empfangen und zurückgesendet.\n");
-    }
-
-    // Socket schließen
-    close(sockfd);
-
-    return 0;
+    return retval;
 }
+
+int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc)
+{
+    int retval = EXIT_FAILURE;
+    //int64_t parsed_numbers; 
+
+    if (argc == 2)
+    {
+        /* parse IP address and port */
+        retval = set_socket_address("0.0.0.0", argv[1], &nw_desc->slave_nw_socket_addr);
+    }    
+       
+    if (EXIT_SUCCESS != retval)
+    {
+        fprintf(stderr, "Error occured: %s\n\n", strerror( errno ));
+        fprintf(stderr, USAGE);
+    }
+
+    return retval;
+}
+
+
+
+
+

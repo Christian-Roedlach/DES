@@ -119,3 +119,58 @@ int send_and_receive_roundtrip(nw_descriptor_t *descriptor)
     return retval;
 }
 
+int recieve_and_send_roundtrip(nw_descriptor_t *descriptor)
+{
+    int retval = EXIT_FAILURE;
+    ssize_t len = 0;
+    socklen_t sockaddr_len = sizeof(struct sockaddr_in);
+
+	retval = EXIT_SUCCESS;
+        
+    len = recvfrom(descriptor->socket_file_descriptor,
+            (char *) &descriptor->message_rcv,
+            sizeof(descriptor->message_rcv),
+			MSG_WAITALL, 
+            (struct sockaddr *) &descriptor->recv_nw_socket_addr,
+			&sockaddr_len);
+	
+	strncpy(descriptor->message_rcv.control, "ACK", sizeof(descriptor->message_rcv.control));
+				
+    len = sendto(descriptor->socket_file_descriptor,
+        	(const char *) &descriptor->message_rcv,
+            sizeof(descriptor->message_rcv),
+            MSG_CONFIRM,  // flag - on reply, use MSG_CONFIRM
+            (const struct sockaddr *) &descriptor->recv_nw_socket_addr,
+            sockaddr_len);
+    
+    
+
+    return retval;
+}
+
+
+int socket_slave(nw_descriptor_t *descriptor) 
+{
+    int retval = EXIT_FAILURE;
+
+    // Creating socket file descriptor
+	if ( (descriptor->socket_file_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) 
+    {
+		perror("Socket creation failed");
+		retval = EXIT_FAILURE;
+	} 
+    else if (bind(descriptor->socket_file_descriptor, 
+            (struct sockaddr *) &descriptor->slave_nw_socket_addr,
+            sizeof (descriptor->slave_nw_socket_addr)))
+    {
+        perror("Socket binding failed");
+		retval = EXIT_FAILURE;
+    }
+    else
+    {
+        retval = EXIT_SUCCESS;
+    }
+
+    return retval;    
+}
+
