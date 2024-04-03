@@ -1,0 +1,6 @@
+Hab jetzt nur die Datei reingegeben, muss mir noch anschauen wie man das in vscode am besten macht, hab das in einer eigenen umgebung in windows gemacht. 
+pandas und matplotlib muss man noch installieren. 
+Das obere im code ist noch die alte version wo man das histogramm selbst errechnet hat. Hat nicht funktioniert.
+Weiter unten ist die version mit der eingebauten histogramm funktion.
+Der höchste Wert ist aber so viel größer als die anderen, da sieht man nichts mehr.
+Hab die Grenzen jetzt mal so gewählt, dass man die größte Menge am besten sieht.
