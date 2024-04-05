@@ -17,8 +17,8 @@ int main (int argc, char** argv)
 {
     int retval = EXIT_FAILURE;
     nw_descriptor_t nw_desc = {
-        .message_snd = {{0}},
-        .message_rcv = {{0}},
+        .message_snd = {0},
+        .message_rcv = {0},
         .socket_file_descriptor = -1,
         .master_nw_socket_addr = {0},
         .slave_nw_socket_addr = {0},
