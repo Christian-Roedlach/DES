@@ -4,3 +4,8 @@ Das obere im code ist noch die alte version wo man das histogramm selbst errechn
 Weiter unten ist die version mit der eingebauten histogramm funktion.
 Der höchste Wert ist aber so viel größer als die anderen, da sieht man nichts mehr.
 Hab die Grenzen jetzt mal so gewählt, dass man die größte Menge am besten sieht.
+
+Required for Ubuntu 22.04 (tested on WSL2):
+pip3 install pandas
+pip3 install matplotlib
+pip3 install PySide2
