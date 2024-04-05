@@ -149,7 +149,8 @@ int do_roundtrip_measurement (nw_descriptor_t *nw_desc, double *result_sec)
     strncpy(nw_desc->message_snd.control, "REQ", sizeof(nw_desc->message_snd.control));
     retval = clock_gettime(CLOCK_MONOTONIC, &timestamp_start);
 
-    nw_desc->message_snd.timestamp = timestamp_start;
+    nw_desc->message_snd.timestamp_sec = timestamp_start.tv_sec;
+    nw_desc->message_snd.timestamp_nsec = timestamp_start.tv_nsec;
     
     /* message number has to be set in calling function ! */
     if (EXIT_SUCCESS == retval)
@@ -187,7 +188,7 @@ int do_roundtrip_sequence (nw_descriptor_t *nw_desc)
             if (EXIT_SUCCESS == retval)
             {
                 if (nw_desc->message_rcv.id == nw_desc->message_snd.id)
-                    if(nw_desc->message_rcv.timestamp.tv_nsec == nw_desc->message_snd.timestamp.tv_nsec)
+                    if(nw_desc->message_rcv.timestamp_nsec == nw_desc->message_snd.timestamp_nsec)
                         if(CHECK_ACK)
                         {
                             retval = EXIT_SUCCESS;

@@ -105,8 +105,8 @@ int send_and_receive_roundtrip(nw_descriptor_t *descriptor)
     fprintf(stdout, "Master transmitted: ID=%d control=%s ts_sec=%ld ts_nsec=%ld\n",
             descriptor->message_snd.id,
             descriptor->message_snd.control,
-            descriptor->message_snd.timestamp.tv_sec,
-            descriptor->message_snd.timestamp.tv_nsec);
+            descriptor->message_snd.timestamp_sec,
+            descriptor->message_snd.timestamp_nsec);
     #endif // DEBUG_LOGGING
     
     if (sizeof(descriptor->message_snd) == len)
@@ -124,8 +124,8 @@ int send_and_receive_roundtrip(nw_descriptor_t *descriptor)
         fprintf(stdout, "Master received:    ID=%d control=%s ts_sec=%ld ts_nsec=%ld\n",
             descriptor->message_snd.id,
             descriptor->message_snd.control,
-            descriptor->message_snd.timestamp.tv_sec,
-            descriptor->message_snd.timestamp.tv_nsec);
+            descriptor->message_snd.timestamp_sec,
+            descriptor->message_snd.timestamp_nsec);
         #endif // DEBUG_LOGGING
 
         if (sizeof(descriptor->message_rcv) == len) 
@@ -156,8 +156,8 @@ int recieve_and_send_roundtrip(nw_descriptor_t *descriptor)
     fprintf(stdout, "Slave received:    ID=%d control=%s ts_sec=%ld ts_nsec=%ld\n",
             descriptor->message_rcv.id,
             descriptor->message_rcv.control,
-            descriptor->message_rcv.timestamp.tv_sec,
-            descriptor->message_rcv.timestamp.tv_nsec);
+            descriptor->message_rcv.timestamp_sec,
+            descriptor->message_rcv.timestamp_nsec);
     #endif // DEBUG_LOGGING
 	
 	strncpy(descriptor->message_rcv.control, "ACK", sizeof(descriptor->message_rcv.control));
@@ -173,8 +173,8 @@ int recieve_and_send_roundtrip(nw_descriptor_t *descriptor)
     fprintf(stdout, "Slave transmitted: ID=%d control=%s ts_sec=%ld ts_nsec=%ld\n",
             descriptor->message_rcv.id,
             descriptor->message_rcv.control,
-            descriptor->message_rcv.timestamp.tv_sec,
-            descriptor->message_rcv.timestamp.tv_nsec);
+            descriptor->message_rcv.timestamp_sec,
+            descriptor->message_rcv.timestamp_nsec);
     #endif // DEBUG_LOGGING
 
     return retval;
