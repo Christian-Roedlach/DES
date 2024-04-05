@@ -5,6 +5,8 @@
 #include <string.h>
 #include <sys/time.h>
 #include <signal.h>
+#include "settings.h"
+#include "stdio.h"
 
 int socket_master(nw_descriptor_t *descriptor) 
 {
@@ -98,6 +100,14 @@ int send_and_receive_roundtrip(nw_descriptor_t *descriptor)
             MSG_CONFIRM,  // flag - on reply, use MSG_CONFIRM
             (const struct sockaddr *) &descriptor->slave_nw_socket_addr,
             sockaddr_len);
+
+    #if (DEBUG_LOGGING)
+    fprintf(stdout, "Master transmitted: ID=%d control=%s ts_sec=%ld ts_nsec=%ld\n",
+            descriptor->message_snd.id,
+            descriptor->message_snd.control,
+            descriptor->message_snd.timestamp.tv_sec,
+            descriptor->message_snd.timestamp.tv_nsec);
+    #endif // DEBUG_LOGGING
     
     if (sizeof(descriptor->message_snd) == len)
     {
@@ -109,6 +119,14 @@ int send_and_receive_roundtrip(nw_descriptor_t *descriptor)
 				MSG_WAITALL, 
                 (struct sockaddr *) &descriptor->recv_nw_socket_addr,
 				&sockaddr_len);
+
+        #if (DEBUG_LOGGING)
+        fprintf(stdout, "Master received:    ID=%d control=%s ts_sec=%ld ts_nsec=%ld\n",
+            descriptor->message_snd.id,
+            descriptor->message_snd.control,
+            descriptor->message_snd.timestamp.tv_sec,
+            descriptor->message_snd.timestamp.tv_nsec);
+        #endif // DEBUG_LOGGING
 
         if (sizeof(descriptor->message_rcv) == len) 
             retval = EXIT_SUCCESS;
@@ -133,6 +151,14 @@ int recieve_and_send_roundtrip(nw_descriptor_t *descriptor)
 			MSG_WAITALL, 
             (struct sockaddr *) &descriptor->recv_nw_socket_addr,
 			&sockaddr_len);
+
+    #if (DEBUG_LOGGING)
+    fprintf(stdout, "Slave received:    ID=%d control=%s ts_sec=%ld ts_nsec=%ld\n",
+            descriptor->message_rcv.id,
+            descriptor->message_rcv.control,
+            descriptor->message_rcv.timestamp.tv_sec,
+            descriptor->message_rcv.timestamp.tv_nsec);
+    #endif // DEBUG_LOGGING
 	
 	strncpy(descriptor->message_rcv.control, "ACK", sizeof(descriptor->message_rcv.control));
 				
@@ -143,7 +169,13 @@ int recieve_and_send_roundtrip(nw_descriptor_t *descriptor)
             (const struct sockaddr *) &descriptor->recv_nw_socket_addr,
             sockaddr_len);
     
-    
+    #if (DEBUG_LOGGING)
+    fprintf(stdout, "Slave transmitted: ID=%d control=%s ts_sec=%ld ts_nsec=%ld\n",
+            descriptor->message_rcv.id,
+            descriptor->message_rcv.control,
+            descriptor->message_rcv.timestamp.tv_sec,
+            descriptor->message_rcv.timestamp.tv_nsec);
+    #endif // DEBUG_LOGGING
 
     return retval;
 }
@@ -168,6 +200,8 @@ int socket_slave(nw_descriptor_t *descriptor)
     }
     else
     {
+        fprintf(stdout, "Slave relay listening on port %d\n", 
+                ntohs(descriptor->slave_nw_socket_addr.sin_port));
         retval = EXIT_SUCCESS;
     }
 
