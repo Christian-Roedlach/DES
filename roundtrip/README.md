@@ -51,4 +51,9 @@ internet route over wifi:
 
     sudo ip route del 0.0.0.0/0 via 192.168.99.1
 
+#### Stress CPU:
+
+    sudo apt install stress
+    stress --cpu <nr of cores>
+
 

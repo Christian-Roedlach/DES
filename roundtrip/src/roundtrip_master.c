@@ -231,6 +231,7 @@ int do_roundtrip_sequence (nw_descriptor_t *nw_desc)
                     fprintf(logfile, "%10d%c%11.9lf\n", data_cache[j].id, CSV_SEPARATOR, data_cache[j].roundtrip_time);
                 }
                 memset(data_cache, 0, NR_ELEMENTS_TO_CACHE * sizeof(data_cache_t));
+                fprintf(stdout, "nr of last logged message: %ld\n", i);
             }
 
             data_cache[i % NR_ELEMENTS_TO_CACHE].id = nw_desc->message_snd.id;
@@ -250,6 +251,7 @@ int do_roundtrip_sequence (nw_descriptor_t *nw_desc)
             fprintf(logfile, "%10d%c%11.9lf\n", data_cache[j].id, CSV_SEPARATOR, data_cache[j].roundtrip_time);
         }
 
+        fprintf(stdout, "Messages done: %ld\n", i);
     }
     else
     {
