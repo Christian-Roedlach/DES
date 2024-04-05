@@ -47,7 +47,10 @@ https://raspberrypi-guide.github.io/networking/set-up-static-ip-address#:~:text=
 
 https://forums.raspberrypi.com/viewtopic.php?t=360175
 
-internet route over wifi:
+    sudo nmcli radio wifi on
+    sudo nmcli dev wifi connect <wifi-ssid> password "<network-password>"
+
+route internet over wifi:
 
     sudo ip route del 0.0.0.0/0 via 192.168.99.1
 
