@@ -1,0 +1,60 @@
+File: laptopChristian_to_pi3_cpu_stress_both_50000.csv
+Min: 0.000562045
+Max: 0.003158515
+Average: 0.0012530940230707072
+
+File: laptopChristian_to_pi3_no_load_50000.csv
+Min: 0.000428194
+Max: 0.00199372
+Average: 0.0009355260902626263
+
+File: laptopChristian_to_pi3_nw_stress_50000.csv
+Min: 0.000306474
+Max: 0.001343515
+Average: 0.0008702164873131314
+
+File: laptopChristian_to_pi3_nw_stress_500000.csv
+Min: 0.000347059
+Max: 0.001393295
+Average: 0.0008998240117272729
+
+File: laptopChristian_to_pi4_cpu_stress_both_50000.csv
+Min: 0.00031559
+Max: 0.004579643
+Average: 0.0010670268839595958
+
+File: laptopChristian_to_pi4_no_load_50000.csv
+Min: 0.000112564
+Max: 0.001042656
+Average: 0.0006492007240202019
+
+File: laptopChristian_to_pi4_no_load_500000.csv
+Min: 0.000105248
+Max: 0.00098512
+Average: 0.0005994282512080808
+
+File: laptopChristian_to_pi4_nw_stress_50000.csv
+Min: 0.000109326
+Max: 0.000855112
+Average: 0.0006189592940808082
+
+File: pi4_to_pi3_cpu_stress_both_50000.csv
+Min: 0.000159939
+Max: 0.001009887
+Average: 0.0002460363830707071
+
+File: pi4_to_pi3_no_load_50000.csv
+Min: 0.000170167
+Max: 0.000334259
+Average: 0.00027942048012121205
+
+File: pi4_to_pi3_no_load_500000.csv
+Min: 0.000166843
+Max: 0.000321531
+Average: 0.0002880214893697829
+
+File: pi4_to_pi3_nw_stress_50000.csv
+Min: 0.000146871
+Max: 0.000327127
+Average: 0.0002772321803434343
+
