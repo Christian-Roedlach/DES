@@ -27,7 +27,7 @@ Connecting to slave on
     ./slave <Slave Listening Port Number>
 
 #### Example
-Listening on port 12345 
+Listen on port 12345 and reply to incoming master
 
 ```bash
     ./slave 12345
