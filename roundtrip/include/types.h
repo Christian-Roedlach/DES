@@ -13,7 +13,6 @@
 #include <unistd.h>
 
 typedef struct  __attribute__ ((__packed__)) {
-    //struct timespec timestamp;
     int64_t timestamp_sec;
     int64_t timestamp_nsec;
     uint32_t id;
