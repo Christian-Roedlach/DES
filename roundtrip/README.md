@@ -14,12 +14,23 @@
 #### Example
 Connecting to slave on 
 - IP address 127.0.0.1 listening on 
-- port 5. Do 
+- port 12345. Do 
 - 5 round trip measurements and store results to file 
 - ../log/test.csv:
 
 ```bash
     ./master 127.0.0.1 12345 5 ../log/test.csv
+```
+
+### Network Slave
+
+    ./slave <Slave Listening Port Number>
+
+#### Example
+Listening on port 12345 
+
+```bash
+    ./slave 12345
 ```
 
 ## Notes
