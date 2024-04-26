@@ -1,1 +1,0 @@
-/usr/bin/cc -rdynamic CMakeFiles/master.dir/roundtrip_master.c.o CMakeFiles/master.dir/lib.c.o CMakeFiles/master.dir/network.c.o -o master 

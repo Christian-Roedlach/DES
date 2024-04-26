@@ -140,12 +140,12 @@ int send_and_receive_roundtrip(nw_descriptor_t *descriptor)
 int recieve_and_send_roundtrip(nw_descriptor_t *descriptor)
 {
     int retval = EXIT_FAILURE;
-    ssize_t len = 0;
+    
     socklen_t sockaddr_len = sizeof(struct sockaddr_in);
 
 	retval = EXIT_SUCCESS;
         
-    len = recvfrom(descriptor->socket_file_descriptor,
+    recvfrom(descriptor->socket_file_descriptor,
             (char *) &descriptor->message_rcv,
             sizeof(descriptor->message_rcv),
 			MSG_WAITALL, 
@@ -162,7 +162,7 @@ int recieve_and_send_roundtrip(nw_descriptor_t *descriptor)
 	
 	strncpy(descriptor->message_rcv.control, "ACK", sizeof(descriptor->message_rcv.control));
 				
-    len = sendto(descriptor->socket_file_descriptor,
+    sendto(descriptor->socket_file_descriptor,
         	(const char *) &descriptor->message_rcv,
             sizeof(descriptor->message_rcv),
             MSG_CONFIRM,  // flag - on reply, use MSG_CONFIRM
