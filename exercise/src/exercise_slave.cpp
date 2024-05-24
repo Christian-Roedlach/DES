@@ -6,6 +6,7 @@
 #include <string.h>
 #include <math.h>
 #include <iostream>
+#include <thread>
 
 #define USAGE "Usage:  \
 ./exercise_slave <Multicast Address> <Port Number>\n\n"
@@ -26,18 +27,24 @@ int main (int argc, char** argv)
        
     if (EXIT_SUCCESS == retval)
         retval = socket_slave_multicast(&nw_desc);
-/*
+
     if (EXIT_SUCCESS == retval)
     {
-        while(1)
-		{
-			retval = recieve_and_send_roundtrip(&nw_desc);
-			
-		}
+        std::thread receive_thread(thread_receive, &node_state, &nw_desc);
+        
+        /* setting thread priority */
+        sched_param sch_params;
+        sch_params.sched_priority = THREAD_PRIORITY_RECEIVE; // 0=low to 99=high
+
+        /* SHED_FIFO has priority (Real Time) - requires root priviledges!!! */
+        if(pthread_setschedparam(receive_thread.native_handle(), SCHED_FIFO, &sch_params)) 
+        {
+            std::cerr << "Failed to set Thread scheduling : " << strerror(errno) << std::endl;
+        }
+
+        receive_thread.join();
     }
-*/
          
-    //retval = test_gettime();
     if (-1 != nw_desc.socket_file_descriptor)
         retval = close(nw_desc.socket_file_descriptor);
 

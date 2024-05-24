@@ -8,6 +8,8 @@
 #include "settings.h"
 #include "stdio.h"
 #include <iostream>
+#include "timesync.h"
+#include "lib.h"
 
 int socket_master(nw_descriptor_t *descriptor) 
 {
@@ -181,6 +183,61 @@ int recieve_and_send_roundtrip(nw_descriptor_t *descriptor)
     return retval;
 }
 
+int recieve_multicast(
+        node_state_t *node_state,
+        nw_multicast_descriptor_t *descriptor)
+{
+    using namespace drs_timesync;
+
+    int retval = EXIT_FAILURE;
+    size_t message_lenght = 0;
+    static const size_t message_length_expected = sizeof(node_message_t);
+    socklen_t sockaddr_len = sizeof(struct sockaddr_in);
+    
+
+    /* Receive multicast messages */        
+    message_lenght = recvfrom(
+            descriptor->socket_file_descriptor,
+            (char *) &descriptor->message_rcv,
+            sizeof(descriptor->message_rcv),
+			MSG_WAITALL, 
+            (struct sockaddr *) &descriptor->recv_nw_socket_addr,
+			&sockaddr_len);
+
+    if (-1 == static_cast<long int>(message_lenght))
+    {
+        #if ERROR_LOGGING
+        std::cerr << "ERROR: recvfrom FAILED: " << strerror(errno); // endl is done by thread
+        #endif // ERROR_LOGGING
+        retval = EXIT_FAILURE;
+    } 
+    else if (message_length_expected != message_lenght)
+    {
+        #if ERROR_LOGGING
+        std::cerr << "ERROR: recvfrom FAILED: mismatch of message lenght: expected " << 
+                message_length_expected << 
+                ", received: "<< message_lenght; // endl is done by thread
+        #endif // ERROR_LOGGING
+        retval = EXIT_FAILURE;
+    } 
+    else
+        retval = EXIT_SUCCESS;
+
+    
+    if (EXIT_SUCCESS == retval)
+    {
+        sync_local_time(node_state, &descriptor->message_rcv);
+    #if (DEBUG_LOGGING)
+        std:: cout << 
+                "Received message: CRC=" << descriptor->message_rcv.crc <<
+                ", MSG_CNT = " << descriptor->message_rcv.msg_cnt << 
+                ", TIMESTAMP = " << descriptor->message_rcv.timestamp << std::endl;
+    #endif // DEBUG_LOGGING
+    }
+    
+    return retval;
+}
+
 
 int socket_slave(nw_descriptor_t *descriptor) 
 {
@@ -255,6 +312,21 @@ int socket_slave_multicast(nw_multicast_descriptor_t *descriptor)
 
     if (EXIT_SUCCESS == retval)
     {
+        if (-1 == setsockopt(descriptor->socket_file_descriptor,
+            SOL_SOCKET,
+            SO_RCVTIMEO,
+            (void *) &descriptor->timeout,
+            sizeof(descriptor->timeout)))
+        {
+            perror("Setting socket option SO_RCVTIMEO failed");
+            retval = EXIT_FAILURE;
+        } 
+        else
+            retval = EXIT_SUCCESS;
+    }
+
+    if (EXIT_SUCCESS == retval)
+    {
         /* Allow broadcasting messages on this machine */
         int value = 1;
         if (setsockopt ( 
@@ -302,5 +374,49 @@ int socket_slave_multicast(nw_multicast_descriptor_t *descriptor)
     }
 
     return retval;    
+}
+
+void thread_receive(
+	node_state_t *node_state,
+    nw_multicast_descriptor_t *descriptor)
+{
+    uint32_t error_count = 0;
+    int retval = EXIT_FAILURE;
+
+#if DEBUG_LOGGING
+    struct timespec timestamp_start = {};
+    struct timespec timestamp_end = {};
+    struct timespec timestamp_diff = {};
+    double timestamp_diff_double = 0;
+
+    retval = clock_gettime(CLOCK_MONOTONIC, &timestamp_start);
+#endif // DEBUG_LOGGING
+
+    while (RECEIVE_ERROR_COUNT_MAX > error_count)
+    {
+        retval = recieve_multicast(node_state, descriptor);
+        if (EXIT_SUCCESS == retval)
+            error_count = 0;
+        else
+        {
+            error_count++;
+            #if ERROR_LOGGING
+            std::cerr << ", error_count: " << error_count << std::endl;
+            #endif // ERROR_LOGGING
+        }
+    }
+
+#if DEBUG_LOGGING
+    retval = clock_gettime(CLOCK_MONOTONIC, &timestamp_end);
+
+    if (EXIT_SUCCESS == retval)
+    {
+        timespec_diff(&timestamp_end, &timestamp_start, &timestamp_diff);
+        timespec_to_double(&timestamp_diff, &timestamp_diff_double);
+    }
+
+    std::cout << "Thread execution time: " << timestamp_diff_double << " s" << std::endl;
+#endif // DEBUG_LOGGING
+
 }
 

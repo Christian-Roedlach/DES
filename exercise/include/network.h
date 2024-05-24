@@ -27,7 +27,7 @@ typedef struct {
 } nw_descriptor_t;
 
 typedef struct {
-	message_t message_rcv = {};
+	node_message_t message_rcv = {};
 	int socket_file_descriptor = -1;
 	struct sockaddr_in slave_nw_socket_addr = {};
 	std::string slave_multicast_grp_addr = "";
@@ -38,11 +38,20 @@ typedef struct {
 } nw_multicast_descriptor_t;
 
 int socket_master(nw_descriptor_t *descriptor);
-int set_socket_address(char *ip_address, char *port, 
+int set_socket_address(
+		char *ip_address, 
+		char *port, 
         struct sockaddr_in *addr);
 int send_and_receive_roundtrip(nw_descriptor_t *descriptor);
 int recieve_and_send_roundtrip(nw_descriptor_t *descriptor);
+int recieve_multicast(
+		node_state_t *node_state, 
+		nw_multicast_descriptor_t *descriptor);
 int socket_slave(nw_descriptor_t *descriptor);
 int socket_slave_multicast(nw_multicast_descriptor_t *descriptor);
+void thread_receive(
+	node_state_t *node_state,
+    nw_multicast_descriptor_t *descriptor);
+
 
 #endif // NETWORK_H

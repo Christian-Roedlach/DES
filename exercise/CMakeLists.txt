@@ -11,6 +11,10 @@ include_directories(./include/)
 #target_compile_options(master PRIVATE -Wall -Wextra -Wpedantic) #-Werror
 #target_link_libraries (master)
 
-add_executable (slave_node ./src/exercise_slave.cpp ./src/lib.cpp ./src/network.cpp)
+add_executable (slave_node 
+    src/exercise_slave.cpp 
+    src/lib.cpp 
+    src/network.cpp
+    src/timesync.cpp)
 target_compile_options(slave_node PRIVATE -Wall -Wextra -Wpedantic) #-Werror
 #target_link_libraries (wiringPi)
