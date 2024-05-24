@@ -25,5 +25,6 @@ int set_socket_address(char *ip_address, char *port,
 int send_and_receive_roundtrip(nw_descriptor_t *descriptor);
 int recieve_and_send_roundtrip(nw_descriptor_t *descriptor);
 int socket_slave(nw_descriptor_t *descriptor);
+int socket_slave_multicast(nw_descriptor_t *descriptor);
 
 #endif // NETWORK_H

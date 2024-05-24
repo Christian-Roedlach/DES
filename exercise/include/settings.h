@@ -1,8 +1,8 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#define TIMEOUT_S   (1)
-#define TIMEOUT_US  (0)
+#define TIMEOUT_S   (0)
+#define TIMEOUT_US  (1000)
 #define NR_ELEMENTS_TO_CACHE 500000
 #define CSV_SEPARATOR ','
 #define CSV_FIELDS "id" "," "roundtrip_time [s]"

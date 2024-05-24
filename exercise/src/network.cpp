@@ -208,3 +208,30 @@ int socket_slave(nw_descriptor_t *descriptor)
     return retval;    
 }
 
+int socket_slave_multicast(nw_descriptor_t *descriptor) 
+{
+    int retval = EXIT_FAILURE;
+
+    // Creating socket file descriptor
+	if ( (descriptor->socket_file_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) 
+    {
+		perror("Socket creation failed");
+		retval = EXIT_FAILURE;
+	} 
+    else if (bind(descriptor->socket_file_descriptor, 
+            (struct sockaddr *) &descriptor->slave_nw_socket_addr,
+            sizeof (descriptor->slave_nw_socket_addr)))
+    {
+        perror("Socket binding failed");
+		retval = EXIT_FAILURE;
+    }
+    else
+    {
+        fprintf(stdout, "Slave relay listening on port %d\n", 
+                ntohs(descriptor->slave_nw_socket_addr.sin_port));
+        retval = EXIT_SUCCESS;
+    }
+
+    return retval;    
+}
+

@@ -28,3 +28,7 @@ mutex transmit_data_mutex;
 
 e.g.
 std::lock_guard<std::mutex> lock(*transmit_data_mutex);
+
+## multicast
+private address range: 224.0.0.0 to 224.0.0.255
+https://www.iana.org/assignments/multicast-addresses/multicast-addresses.xhtml#:~:text=The%20multicast%20addresses%20are%20in,Address%20assignments%20are%20listed%20below.
