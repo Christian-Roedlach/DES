@@ -17,7 +17,7 @@
 
 ## includes
 #include <thread>
-#includ <mutex>
+#include <mutex>
 
 std::mutex transmit_data_mutex;
 
@@ -25,3 +25,6 @@ OR
 
 using namespace std;
 mutex transmit_data_mutex;
+
+e.g.
+std::lock_guard<std::mutex> lock(*transmit_data_mutex);

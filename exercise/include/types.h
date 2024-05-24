@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <mutex>
 
 typedef struct  __attribute__ ((__packed__)) {
     int64_t timestamp_sec;
@@ -19,11 +20,22 @@ typedef struct  __attribute__ ((__packed__)) {
     char control[4];
 } message_t;
 
+typedef uint64_t timestamp_t;
+
 typedef struct  __attribute__ ((__packed__)) {
     uint16_t crc;
     uint16_t msg_cnt;
-    uint64_t timestamp;
+    timestamp_t timestamp;
 } node_message_t;
+
+typedef struct {
+    timestamp_t timestamp = 0;
+    std::mutex timestamp_mutex;
+    // always lock all gpio_event variables !!
+    bool gpio_event_registered = false;
+    timestamp_t gpio_event_registered_timestamp = 0;
+    std::mutex gpio_event_registered_mutex;
+} node_state_t;
 
 typedef struct {
     uint32_t id;

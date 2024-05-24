@@ -16,6 +16,8 @@ int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc);
 int main (int argc, char** argv)
 {
     int retval = EXIT_FAILURE;
+    node_state_t node_state;
+
     /*
     nw_descriptor_t nw_desc = {
         .message_snd = {0},
