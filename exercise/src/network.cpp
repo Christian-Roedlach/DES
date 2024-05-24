@@ -7,6 +7,7 @@
 #include <signal.h>
 #include "settings.h"
 #include "stdio.h"
+#include <iostream>
 
 int socket_master(nw_descriptor_t *descriptor) 
 {
@@ -208,7 +209,7 @@ int socket_slave(nw_descriptor_t *descriptor)
     return retval;    
 }
 
-int socket_slave_multicast(nw_descriptor_t *descriptor) 
+int socket_slave_multicast(nw_multicast_descriptor_t *descriptor) 
 {
     int retval = EXIT_FAILURE;
     struct ip_mreq multicast_request;
@@ -289,10 +290,15 @@ int socket_slave_multicast(nw_descriptor_t *descriptor)
             retval = EXIT_SUCCESS;
     }
 
+
     if (EXIT_SUCCESS == retval)    
     {
-        fprintf(stdout, "Slave relay listening on port %d\n", 
-                ntohs(descriptor->slave_nw_socket_addr.sin_port));
+        std::cout << "Slave relay listening to multicast messages on " <<
+                std::endl << "\t --> " <<
+                descriptor->slave_multicast_grp_addr <<
+                ":" <<
+                ntohs(descriptor->slave_nw_socket_addr.sin_port) <<
+                std::endl;
     }
 
     return retval;    
