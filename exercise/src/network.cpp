@@ -211,25 +211,88 @@ int socket_slave(nw_descriptor_t *descriptor)
 int socket_slave_multicast(nw_descriptor_t *descriptor) 
 {
     int retval = EXIT_FAILURE;
+    struct ip_mreq multicast_request;
 
     // Creating socket file descriptor
-	if ( (descriptor->socket_file_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) 
+	if ( (descriptor->socket_file_descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP)) < 0 ) 
     {
 		perror("Socket creation failed");
 		retval = EXIT_FAILURE;
 	} 
-    else if (bind(descriptor->socket_file_descriptor, 
-            (struct sockaddr *) &descriptor->slave_nw_socket_addr,
-            sizeof (descriptor->slave_nw_socket_addr)))
+    else 
+        retval = EXIT_SUCCESS;
+    
+    if (EXIT_SUCCESS == retval)
     {
-        perror("Socket binding failed");
-		retval = EXIT_FAILURE;
+        /* Allow multiple processes to use selected port (avoid restart issues) */
+        int value = 1;
+        if (setsockopt ( 
+                descriptor->socket_file_descriptor,
+                SOL_SOCKET,
+                SO_REUSEADDR,
+                &value, sizeof (value)) < 0) 
+        {
+            perror ("setsockopt:SO_REUSEADDR");
+            retval = EXIT_FAILURE;
+        }
+        else 
+            retval = EXIT_SUCCESS;
     }
-    else
+
+    if (EXIT_SUCCESS == retval)
+    {
+        if (bind(descriptor->socket_file_descriptor, 
+                (struct sockaddr *) &descriptor->slave_nw_socket_addr,
+                sizeof (descriptor->slave_nw_socket_addr)) < 0)
+        {
+            perror("Socket binding failed");
+            retval = EXIT_FAILURE;
+        }
+        else
+            retval = EXIT_SUCCESS;
+    }
+
+    if (EXIT_SUCCESS == retval)
+    {
+        /* Allow broadcasting messages on this machine */
+        int value = 1;
+        if (setsockopt ( 
+                descriptor->socket_file_descriptor,
+                IPPROTO_IP,
+                IP_MULTICAST_LOOP,
+                &value, sizeof (value)) < 0) 
+        {
+            perror ("setsockopt:IP_MULTICAST_LOOP");
+            retval = EXIT_FAILURE;
+        }
+        else 
+            retval = EXIT_SUCCESS;
+    }
+
+    if (EXIT_SUCCESS == retval)
+    {
+        /* Set up multicast address */
+        multicast_request.imr_multiaddr.s_addr = inet_addr(descriptor->slave_multicast_grp_addr.c_str());
+        multicast_request.imr_interface = descriptor->slave_nw_socket_addr.sin_addr;
+
+        /* Join broadcast group */
+        if (setsockopt ( 
+                descriptor->socket_file_descriptor,
+                IPPROTO_IP,
+                IP_ADD_MEMBERSHIP,
+                &multicast_request, sizeof (multicast_request)) < 0) 
+        {
+            perror ("setsockopt:IP_ADD_MEMBERSHIP");
+            retval = EXIT_FAILURE;
+        }
+        else 
+            retval = EXIT_SUCCESS;
+    }
+
+    if (EXIT_SUCCESS == retval)    
     {
         fprintf(stdout, "Slave relay listening on port %d\n", 
                 ntohs(descriptor->slave_nw_socket_addr.sin_port));
-        retval = EXIT_SUCCESS;
     }
 
     return retval;    

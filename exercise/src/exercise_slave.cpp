@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <iostream>
 
 #define USAGE "Usage:  \
 ./exercise_slave <Multicast Address> <Port Number>\n\n"
@@ -34,6 +35,7 @@ int main (int argc, char** argv)
 			
 		}
     }
+*/
          
     //retval = test_gettime();
     if (-1 != nw_desc.socket_file_descriptor)
@@ -41,21 +43,32 @@ int main (int argc, char** argv)
 
     if (EXIT_SUCCESS != retval)
         fprintf(stderr, "Error occured: %s\n\n", strerror( errno ));
-    */
+
     return retval;
 }
 
 int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc)
 {
     int retval = EXIT_FAILURE;
-    //int64_t parsed_numbers; 
+    /* parse IP address and port */
 
+    char all_addresses[] = "0.0.0.0";
+    
+    #if (!DEBUG_FIXED_ADDRESSES_ENABLED)
     if (argc == 3)
     {
-        // char all_addresses[] = "0.0.0.0";
-        /* parse IP address and port */
-        retval = set_socket_address(argv[1], argv[2], &nw_desc->slave_nw_socket_addr);
-    }    
+        retval = set_socket_address(all_addresses, argv[2], &nw_desc->slave_nw_socket_addr);
+        nw_desc->slave_multicast_grp_addr = argv[1];
+    }
+    #else // DEBUG_FIXED_ADDRESSES_ENABLED
+        #warning "ATTENTION: DEBUG_FIXED_ADDRESSES_ENABLED is set!!!"
+        char port[] = DEBUG_FIXED_ADDRESSES_PORT;
+        char multicast_addr[] = DEBUG_FIXED_ADDRESSES_ADDR;
+        retval = set_socket_address(all_addresses, argv[2], &nw_desc->slave_nw_socket_addr);
+        nw_desc->slave_multicast_grp_addr = argv[1];
+        std::cout << "ATTENTION: DEBUG_FIXED_ADDRESSES_ENABLED is set: listening to multicast group on" << std::endl;
+        std::cout << multicast_addr << ":" << port << std::endl;
+    #endif // DEBUG_FIXED_ADDRESSES_ENABLED
        
     if (EXIT_SUCCESS != retval)
     {
