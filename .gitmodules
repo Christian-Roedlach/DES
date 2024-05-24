@@ -1,0 +1,6 @@
+[submodule "exercise/src/raspberry-pi-gpio-interrupt"]
+	path = exercise/src/raspberry-pi-gpio-interrupt
+	url = https://github.com/phil-lavin/raspberry-pi-gpio-interrupt.git
+[submodule "exercise/src/WiringPi"]
+	path = exercise/src/WiringPi
+	url = https://github.com/WiringPi/WiringPi.git
