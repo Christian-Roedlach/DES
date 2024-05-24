@@ -14,3 +14,14 @@
 
 ## notes
 - check thread/process priorities
+
+## includes
+#include <thread>
+#includ <mutex>
+
+std::mutex transmit_data_mutex;
+
+OR
+
+using namespace std;
+mutex transmit_data_mutex;

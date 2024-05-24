@@ -19,6 +19,12 @@ typedef struct  __attribute__ ((__packed__)) {
     char control[4];
 } message_t;
 
+typedef struct  __attribute__ ((__packed__)) {
+    uint16_t crc;
+    uint16_t msg_cnt;
+    uint64_t timestamp;
+} node_message_t;
+
 typedef struct {
     uint32_t id;
     double roundtrip_time;

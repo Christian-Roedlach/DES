@@ -3,7 +3,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-project(slave_node C)
+project(slave_node CXX)
 
 include_directories(./include/)
 
@@ -11,6 +11,6 @@ include_directories(./include/)
 #target_compile_options(master PRIVATE -Wall -Wextra -Wpedantic) #-Werror
 #target_link_libraries (master)
 
-add_executable (slave_node ./src/exercise_slave.c ./src/lib.c ./src/network.c)
+add_executable (slave_node ./src/exercise_slave.cpp ./src/lib.cpp ./src/network.cpp)
 target_compile_options(slave_node PRIVATE -Wall -Wextra -Wpedantic) #-Werror
 #target_link_libraries (wiringPi)

@@ -59,8 +59,9 @@ int parse_arguments (int argc, char** argv, nw_descriptor_t *nw_desc)
 
     if (argc == 2)
     {
+        char all_addresses[] = "0.0.0.0";
         /* parse IP address and port */
-        retval = set_socket_address("0.0.0.0", argv[1], &nw_desc->slave_nw_socket_addr);
+        retval = set_socket_address(all_addresses, argv[1], &nw_desc->slave_nw_socket_addr);
     }    
        
     if (EXIT_SUCCESS != retval)
