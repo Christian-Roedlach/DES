@@ -6,17 +6,18 @@
 #include "time.h"
 #include <sys/socket.h>
 #include <sys/time.h>
+#include <settings.h>
 
 typedef struct {
-	message_t message_snd;
-	message_t message_rcv;
-	int socket_file_descriptor;
-	struct sockaddr_in master_nw_socket_addr;
-	struct sockaddr_in slave_nw_socket_addr;
-	struct sockaddr_in recv_nw_socket_addr;
-	struct timeval timeout;
-	uint32_t nr_of_messages;
-	char *logfile_name;
+	message_t message_snd = {};
+	message_t message_rcv = {};
+	int socket_file_descriptor = -1;
+	struct sockaddr_in master_nw_socket_addr = {};
+	struct sockaddr_in slave_nw_socket_addr = {};
+	struct sockaddr_in recv_nw_socket_addr = {};
+	struct timeval timeout = {TIMEOUT_S, TIMEOUT_US};
+	uint32_t nr_of_messages = 0;
+	char *logfile_name = nullptr;
 } nw_descriptor_t;
 
 int socket_master(nw_descriptor_t *descriptor);

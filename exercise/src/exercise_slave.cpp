@@ -17,16 +17,7 @@ int main (int argc, char** argv)
 {
     int retval = EXIT_FAILURE;
     node_state_t node_state;
-
-    nw_descriptor_t nw_desc = {
-        .message_snd = {0},
-        .message_rcv = {0},
-        .socket_file_descriptor = -1,
-        .master_nw_socket_addr = {0},
-        .slave_nw_socket_addr = {0},
-        .recv_nw_socket_addr = {0},
-        .timeout = {TIMEOUT_S, TIMEOUT_US}
-    };
+    nw_descriptor_t nw_desc;
 
     setlinebuf(stdout);
 
