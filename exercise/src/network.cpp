@@ -406,6 +406,8 @@ void thread_receive(
         }
     }
 
+    node_state->errorstate = EXIT_FAILURE;
+
 #if DEBUG_LOGGING
     retval = clock_gettime(CLOCK_MONOTONIC, &timestamp_end);
 

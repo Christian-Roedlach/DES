@@ -12,7 +12,7 @@ namespace drs_timesync
 template<typename T>
 T abs_diff(T a, T b) 
 {
-  return a > b ? a - b : b - a;
+    return a > b ? a - b : b - a;
 }
 
 static inline int crc_check(node_message_t *message)

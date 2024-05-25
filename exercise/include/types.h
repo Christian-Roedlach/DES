@@ -36,6 +36,7 @@ typedef struct {
     timestamp_t gpio_event_registered_timestamp = 0;
     std::mutex gpio_event_registered_mutex;
     bool time_synced = false;
+    int errorstate = EXIT_SUCCESS;
 } node_state_t;
 
 typedef struct {
