@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <settings.h>
 #include <lib.h>
+#include <types.h>
+#include <lib-timer.h>
 
 // Global counter variable
 volatile int counter = 0;
@@ -25,22 +27,51 @@ void timer_handler(union sigval sv) {
     std::cout << "Counter: " << counter << " , timediff: " << diff_sec << " s" << std::endl;
     #endif // DEBUG_LOGGING
 
-    counter++;
+
+    node_state_t *node_state = static_cast<node_state_t*>(sv.sival_ptr);
+    {
+        std::lock_guard<std::mutex> lock(node_state->timestamp_mutex);
+        node_state->timestamp++;
+       
+    }
 }
 
-int main(node_state_t *node_state) {
+int thread_timer(node_state_t *node_state) {
+    
+    timer_t timerid;
+    
+    if (start_timer(node_state,&timerid) != 0) {
+        return 1;
+    }
+
+
+    while (EXIT_SUCCESS == node_state->errorstate) {
+        sleep(1);
+          
+    }
+
+    stop_timer(timerid);
+
+    
+
+
+    return 0;
+}
+
+int start_timer(node_state_t *node_state,timer_t *timerid){
+
     struct sigevent sev;
     struct itimerspec its;
-    timer_t timerid;
+    
     int ret;
 
     // Create the timer
     sev.sigev_notify = SIGEV_THREAD;
-    sev.sigev_value.sival_ptr = NULL;
+    sev.sigev_value.sival_ptr = node_state;
     sev.sigev_notify_function = timer_handler;
     sev.sigev_notify_attributes = NULL;
 
-    ret = timer_create(CLOCK_MONOTONIC, &sev, &timerid);
+    ret = timer_create(CLOCK_MONOTONIC, &sev, timerid);
     if (ret == -1) {
         perror("timer_create");
         return 1;
@@ -58,12 +89,20 @@ int main(node_state_t *node_state) {
         return 1;
     }
 
-    
-    while (EXIT_SUCCESS == node_state->errorstate) {
-        sleep(1);  
-    }
-
-    #warning "todo stop timer??"
-
-    return 0;
 }
+
+void stop_timer(timer_t timerid){
+
+    int ret = timer_delete(timerid);
+    if(ret == -1){
+        perror("timer_delete");
+    } else{
+
+        #if DEBUG_LOGGING
+        std::cout<< "Timer stopped!"<<std::endl;
+        #endif
+    }
+}
+
+
+

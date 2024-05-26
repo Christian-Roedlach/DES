@@ -2,6 +2,7 @@
 #include "lib.h"
 #include "network.h"
 #include "settings.h"
+#include "lib-timer.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -38,6 +39,20 @@ int main (int argc, char** argv)
 
         /* SHED_FIFO has priority (Real Time) - requires root priviledges!!! */
         if(pthread_setschedparam(receive_thread.native_handle(), SCHED_FIFO, &sch_params)) 
+        {
+            std::cerr << "Failed to set Thread scheduling : " << strerror(errno) << std::endl;
+        }
+
+
+
+        std::thread timer_thread(thread_timer, &node_state);
+        
+        /* setting thread priority */
+        sched_param sch_params_timer;
+        sch_params_timer.sched_priority = THREAD_PRIORITY_TIMER; // 0=low to 99=high
+
+        /* SHED_FIFO has priority (Real Time) - requires root priviledges!!! */
+        if(pthread_setschedparam(timer_thread.native_handle(), SCHED_FIFO, &sch_params_timer)) 
         {
             std::cerr << "Failed to set Thread scheduling : " << strerror(errno) << std::endl;
         }
