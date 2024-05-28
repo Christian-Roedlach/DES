@@ -18,14 +18,8 @@ add_executable (slave_node
     src/lib.cpp 
     src/network.cpp
     src/timesync.cpp
-    src/lib-timer.cpp)
+    src/lib-timer.cpp
+    src/signal_pin.cpp
+)
 target_compile_options(slave_node PRIVATE -Wall -Wextra -Wpedantic) #-Werror
-#target_link_libraries (wiringPi)
 target_link_libraries(slave_node ${wiringPi_LIB})
-
-#add_executable (timer_test
-#    src/lib-timer.cpp
-#    src/lib.cpp 
-#    src/network.cpp
-#    src/timesync.cpp
-#    )

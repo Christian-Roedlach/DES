@@ -8,11 +8,14 @@
 #include <lib-timer.h>
 
 // Global counter variable
-volatile int counter = 0;
+//volatile int counter = 0;
 
 // Timer handler function
 void timer_handler(union sigval sv) {
-    #if DEBUG_LOGGING
+    node_state_t *node_state = static_cast<node_state_t*>(sv.sival_ptr);
+    static uint32_t microtick = 0;
+
+    #if DEBUG_LOGGING_TIMER_HANDLER
     static struct timespec timestamp_last = {};
     static struct timespec timestamp_current = {};
     static struct timespec timestamp_diff = {};  
@@ -24,15 +27,16 @@ void timer_handler(union sigval sv) {
     clock_gettime(CLOCK_MONOTONIC, &timestamp_last);
 
     timespec_to_float(&timestamp_diff, &diff_sec);
-    std::cout << "Counter: " << counter << " , timediff: " << diff_sec << " s" << std::endl;
-    #endif // DEBUG_LOGGING
 
+    std::cout << "Counter previous value: " << node_state->timestamp << " , timediff: " << diff_sec << " s" << std::endl;
+    #endif // DEBUG_LOGGING_TIMER_HANDLER
 
-    node_state_t *node_state = static_cast<node_state_t*>(sv.sival_ptr);
+    microtick++;
+
+    if (0 == (microtick % MAKROTICK_MULT))
     {
         std::lock_guard<std::mutex> lock(node_state->timestamp_mutex);
         node_state->timestamp++;
-       
     }
 }
 
@@ -46,14 +50,10 @@ int thread_timer(node_state_t *node_state) {
 
 
     while (EXIT_SUCCESS == node_state->errorstate) {
-        sleep(1);
-          
+        sleep(1);  
     }
 
     stop_timer(timerid);
-
-    
-
 
     return 0;
 }
@@ -79,11 +79,11 @@ int start_timer(node_state_t *node_state,timer_t *timerid){
 
     // Start the timer
     its.it_value.tv_sec = 0;  // Initial delay, nanoseconds
-    its.it_value.tv_nsec = 500000; //nanoseconds --> 500us
+    its.it_value.tv_nsec = MICROTICK_NS; //nanoseconds --> 500us
     its.it_interval.tv_sec = 0;  // Interval delay, seconds
-    its.it_interval.tv_nsec = 500050;//nanoseconds --> 500us
+    its.it_interval.tv_nsec = MICROTICK_NS;//nanoseconds --> 500us
 
-    ret = timer_settime(timerid, 0, &its, NULL);
+    ret = timer_settime(*timerid, 0, &its, NULL);
     if (-1 == ret) {
         perror("timer_settime");
         return 1;
