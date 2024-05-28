@@ -17,7 +17,7 @@ void timer_handler(union sigval sv) {
     static struct timespec timestamp_current = {};
     static struct timespec timestamp_diff = {};  
     static float diff_sec = 0;
-    double timestamp_diff_double = 0;
+    //double timestamp_diff_double = 0;
 
     clock_gettime(CLOCK_MONOTONIC, &timestamp_current);
     timespec_diff(&timestamp_current, &timestamp_last, &timestamp_diff);
@@ -79,9 +79,9 @@ int start_timer(node_state_t *node_state,timer_t *timerid){
 
     // Start the timer
     its.it_value.tv_sec = 0;  // Initial delay, nanoseconds
-    its.it_value.tv_nsec = 1000000; //nanoseconds
+    its.it_value.tv_nsec = 500000; //nanoseconds --> 500us
     its.it_interval.tv_sec = 0;  // Interval delay, seconds
-    its.it_interval.tv_nsec = 50000;//nanoseconds
+    its.it_interval.tv_nsec = 500050;//nanoseconds --> 500us
 
     ret = timer_settime(timerid, 0, &its, NULL);
     if (-1 == ret) {
@@ -89,6 +89,7 @@ int start_timer(node_state_t *node_state,timer_t *timerid){
         return 1;
     }
 
+    return 0;
 }
 
 void stop_timer(timer_t timerid){
