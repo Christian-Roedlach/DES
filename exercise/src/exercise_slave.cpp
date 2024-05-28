@@ -3,11 +3,13 @@
 #include "network.h"
 #include "settings.h"
 #include "lib-timer.h"
+#include "signal_pin.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <iostream>
 #include <thread>
+
 
 #define USAGE "Usage:  \
 ./exercise_slave <Multicast Address> <Port Number>\n\n"
@@ -40,11 +42,10 @@ int main (int argc, char** argv)
         /* SHED_FIFO has priority (Real Time) - requires root priviledges!!! */
         if(pthread_setschedparam(receive_thread.native_handle(), SCHED_FIFO, &sch_params)) 
         {
-            std::cerr << "Failed to set Thread scheduling : " << strerror(errno) << std::endl;
+            std::cerr << "Failed to set Thread scheduling : " << strerror(errno) <<
+                    " - root privileges required" << std::endl;
         }
 
-
-        
         std::thread timer_thread(thread_timer, &node_state);
         
         /* setting thread priority */
@@ -54,11 +55,25 @@ int main (int argc, char** argv)
         /* SHED_FIFO has priority (Real Time) - requires root priviledges!!! */
         if(pthread_setschedparam(timer_thread.native_handle(), SCHED_FIFO, &sch_params_timer)) 
         {
-            std::cerr << "Failed to set Thread scheduling : " << strerror(errno) << std::endl;
+            std::cerr << "Failed to set Thread scheduling : " << strerror(errno) <<
+                    " - root privileges required" << std::endl;
+        }
+
+        std::thread signal_pin_thread(thread_signal_pin, GPIO_PIN, &node_state);
+        
+        /* setting thread priority */
+        sched_param sch_params_signal_pin;
+        sch_params_signal_pin.sched_priority = THREAD_PRIORITY_SIGNAL_PIN; // 0=low to 99=high
+        
+        /* SHED_FIFO has priority (Real Time) - requires root priviledges!!! */
+        if(pthread_setschedparam(signal_pin_thread.native_handle(), SCHED_FIFO, &sch_params_signal_pin)) 
+        {
+            std::cerr << "Failed to set Thread scheduling : " << strerror(errno) <<
+                    " - root privileges required" << std::endl;
         }
         
+        signal_pin_thread.join();
         timer_thread.join();
-        
         receive_thread.join();
     }
          
