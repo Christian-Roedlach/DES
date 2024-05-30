@@ -34,8 +34,9 @@ typedef struct {
     // always lock all gpio_event variables !!
     bool gpio_event_registered = false;
     timestamp_t gpio_event_registered_timestamp = 0;
+    int gpio_event_registered_sync_status = 0;
     std::mutex gpio_event_registered_mutex;
-    bool time_synced = false;
+    int time_synced = 0;
     int errorstate = EXIT_SUCCESS;
 } node_state_t;
 

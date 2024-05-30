@@ -35,7 +35,7 @@ static inline int sync_local_time(
     {
         new_timestamp = message->timestamp + TIMESTAMP_DELAY_VALUE_TICKS;
 
-        if (node_state->time_synced)
+        if (1 == node_state->time_synced)
         {   
             {
                 std::lock_guard<std::mutex> lock(node_state->timestamp_mutex);
@@ -47,19 +47,22 @@ static inline int sync_local_time(
             {
                 #warning "TODO: Error handling has to be implemented";
                 
-                #if DEBUG_LOGGING
+                #if ERROR_LOGGING
                 std::cout << "WARNING: deviation was too big: " << abs_diff(new_timestamp, previous_timestamp) << std::endl;
-                #endif // DEBUG_LOGGING
+                #endif // ERROR_LOGGING
             }
+            #if DEBUG_LOGGING
+                std::cout << "INFO: time deviation was (system - master): " << previous_timestamp - new_timestamp << std::endl;
+            #endif // DEBUG_LOGGING
         } 
         else
         {   
             {
                 std::lock_guard<std::mutex> lock(node_state->timestamp_mutex);
                 node_state->timestamp = new_timestamp;
+                node_state->time_synced = 1;
             }
             /* mutex is released */
-            node_state->time_synced = true;
         }
     }
 

@@ -40,22 +40,30 @@ void timer_handler(union sigval sv) {
     }
 }
 
-int thread_timer(node_state_t *node_state) {
-    
+void thread_timer(node_state_t *node_state) 
+{
+    int retval = EXIT_FAILURE;    
     timer_t timerid;
     
-    if (start_timer(node_state,&timerid) != 0) {
-        return 1;
+    retval = start_timer(node_state,&timerid);
+
+    if (EXIT_SUCCESS == retval)
+    {
+        while (EXIT_SUCCESS == node_state->errorstate) 
+        {
+            sleep(1);  
+        }
+
+        stop_timer(timerid);
+
+        #if DEBUG_LOGGING
+            std::cout<< "THREAD: timer STOPPED!"<<std::endl;
+        #endif // DEBUG_LOGGING
     }
-
-
-    while (EXIT_SUCCESS == node_state->errorstate) {
-        sleep(1);  
-    }
-
-    stop_timer(timerid);
-
-    return 0;
+    else
+    {
+        std::cerr << "ERROR: setting up timer FAILED!" << std::endl;
+    } 
 }
 
 int start_timer(node_state_t *node_state,timer_t *timerid){

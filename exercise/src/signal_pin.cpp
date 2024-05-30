@@ -13,6 +13,7 @@ void signal_pin_handler(void)
     {
         std::lock_guard<std::mutex> lock(node_state_ptr->gpio_event_registered_mutex);
         node_state_ptr->gpio_event_registered_timestamp = node_state_ptr->timestamp;
+        node_state_ptr->gpio_event_registered_sync_status = node_state_ptr->time_synced;
         node_state_ptr->gpio_event_registered = true;
     }
     /* mutex is released */
@@ -32,14 +33,33 @@ void thread_signal_pin(int pin, node_state_t *node_state)
         pinMode(pin, INPUT);
         retval = wiringPiISR(pin, INT_EDGE_RISING, &signal_pin_handler);
     }
+#else
+    retval = EXIT_SUCCESS;
 #endif // RASPBERRY_PI
 
-    if (0 == EXIT_SUCCESS)
+    if (EXIT_SUCCESS == retval)
     {
         while (EXIT_SUCCESS == node_state->errorstate) 
         {
-            sleep(1);  
+            #if (RASPBERRY_PI)
+                sleep(1);  
+            #else // RASPBERRY_PI
+                /* write testdata */
+                {
+                    std::lock_guard<std::mutex> lock(node_state_ptr->gpio_event_registered_mutex);
+                    node_state_ptr->gpio_event_registered_timestamp = node_state_ptr->timestamp;
+                    node_state_ptr->gpio_event_registered_sync_status = node_state_ptr->time_synced;
+                    node_state_ptr->gpio_event_registered = true;
+                }
+                
+                /* sleep for 100 ms */
+                usleep(100000);
+            #endif // RASPBERRY_PI
         }
+
+        #if DEBUG_LOGGING
+            std::cout<< "THREAD: signal_pin STOPPED!"<<std::endl;
+        #endif // DEBUG_LOGGING
     }
     else
     {
