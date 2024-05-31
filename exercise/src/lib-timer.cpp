@@ -6,6 +6,7 @@
 #include <lib.h>
 #include <types.h>
 #include <lib-timer.h>
+#include "logging.h"
 
 // Global counter variable
 //volatile int counter = 0;
@@ -49,7 +50,8 @@ void thread_timer(node_state_t *node_state)
 
     if (EXIT_SUCCESS == retval)
     {
-        while (EXIT_SUCCESS == node_state->errorstate) 
+        /* allow errSt_running and errSt_retry to continue thread */
+        while (errSt_restart > node_state->errorstate) 
         {
             sleep(1);  
         }
@@ -62,12 +64,13 @@ void thread_timer(node_state_t *node_state)
     }
     else
     {
-        std::cerr << "ERROR: setting up timer FAILED!" << std::endl;
+        write_syslog("setting up TIMER failed!", LOG_CRIT);
+        node_state->errorstate = srrSt_stop_disable_service;
     } 
 }
 
-int start_timer(node_state_t *node_state,timer_t *timerid){
-
+int start_timer(node_state_t *node_state,timer_t *timerid)
+{
     struct sigevent sev;
     struct itimerspec its;
     

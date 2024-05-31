@@ -2,6 +2,7 @@
 #include <wiringPi.h>
 #include <iostream>
 #include "settings.h"
+#include "logging.h"
 
 /* global variables have to be used as wiringPiISR does not allow arguments */
 static node_state_t *node_state_ptr = nullptr;
@@ -39,7 +40,8 @@ void thread_signal_pin(int pin, node_state_t *node_state)
 
     if (EXIT_SUCCESS == retval)
     {
-        while (EXIT_SUCCESS == node_state->errorstate) 
+        /* allow errSt_running and errSt_retry to continue thread */
+        while (errSt_restart > node_state->errorstate) 
         {
             #if (RASPBERRY_PI)
                 sleep(1);  
@@ -64,10 +66,11 @@ void thread_signal_pin(int pin, node_state_t *node_state)
     else
     {
         #if (RASPBERRY_PI)
-        node_state->errorstate = EXIT_FAILURE;
+            write_syslog("setting up GPIO interrupt thread failed!", LOG_ERR);
+            node_state->errorstate = errSt_restart;
         #else  // RASPBERRY_PI
             #warning "signal pin exit program DISABLED (for PC development)"
+            std::cerr << "ERROR: setting up signal_pin_header FAILED!" << std::endl;
         #endif // RASPBERRY_PI
-        std::cerr << "ERROR: setting up signal_pin_header FAILED!" << std::endl;
     }
 }

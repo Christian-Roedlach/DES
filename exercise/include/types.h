@@ -13,13 +13,6 @@
 #include <unistd.h>
 #include <mutex>
 
-typedef struct  __attribute__ ((__packed__)) {
-    int64_t timestamp_sec;
-    int64_t timestamp_nsec;
-    uint32_t id;
-    char control[4];
-} message_t;
-
 typedef uint64_t timestamp_t;
 
 typedef struct  __attribute__ ((__packed__)) {
@@ -27,6 +20,16 @@ typedef struct  __attribute__ ((__packed__)) {
     uint16_t msg_cnt;
     uint16_t crc;
 } node_message_t;
+
+typedef enum {
+    errSt_running = 0,
+    errSt_retry,
+    errSt_restart,
+    errSt_stop_leave_service,
+    srrSt_stop_disable_service,
+    errSt_segfault,
+    errSt_undefined = -1,
+} errorstate_t;
 
 typedef struct {
     timestamp_t timestamp = 0;
@@ -37,7 +40,7 @@ typedef struct {
     int gpio_event_registered_sync_status = 0;
     std::mutex gpio_event_registered_mutex;
     int time_synced = 0;
-    int errorstate = EXIT_SUCCESS;
+    errorstate_t errorstate = errSt_running;
 } node_state_t;
 
 typedef struct {

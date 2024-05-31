@@ -5,29 +5,25 @@
     - https://github.com/WiringPi/WiringPi/tree/master
 - UDP multicast
     - https://openbook.rheinwerk-verlag.de/linux_unix_programmierung/Kap11-018.htm
-- adaptive struct
-- thread GPIO
-- thread timer
-- thread logging
-- thread receive
-- services (systemd/systemctl)
+- adaptive struct - checked
+- thread GPIO - checked
+- thread timer - checked
+- thread logging - checked
+- thread receive - checked
+- error handling - open
+- test_master - open
+- test on RPi (pin interrupt) - open
+- services (systemd/systemctl) - open
 
 ## notes
-- check thread/process priorities
+- check thread/process priorities - checked
 
-## includes
-#include <thread>
-#include <mutex>
+## syslog
+- https://www.gnu.org/software/libc/manual/html_node/Syslog-Example.html
 
-std::mutex transmit_data_mutex;
+### show log:
 
-OR
-
-using namespace std;
-mutex transmit_data_mutex;
-
-e.g.
-std::lock_guard<std::mutex> lock(*transmit_data_mutex);
+    more /var/log/syslog | grep -a 'slave_node'
 
 ## multicast
 private address range: 224.0.0.0 to 224.0.0.255

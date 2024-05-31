@@ -29,6 +29,8 @@ int main (int argc, char** argv)
 
     setlinebuf(stdout);
 
+    syslog_program_start();
+
     retval = parse_arguments(argc, argv, &nw_desc);
        
     if (EXIT_SUCCESS == retval)
@@ -60,6 +62,7 @@ int main (int argc, char** argv)
     if (EXIT_SUCCESS != retval)
         fprintf(stderr, "Error occured: %s\n\n", strerror( errno ));
 
+    /* set program return value to corresponding enum value */
     retval = node_state.errorstate;
 
 #if DEBUG_LOGGING

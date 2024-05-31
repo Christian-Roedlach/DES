@@ -14,6 +14,7 @@
 #define MAKROTICK_MULT  10          //   5 ms
 #define GPIO_PIN 2
 #define RASPBERRY_PI 0
+#define SYSLOG_NAME "slave_node"
 
 #define CRC_POLY    0x1021
 #define CRC_INIT    0xFFFF
@@ -27,7 +28,7 @@
 #define STDOUT_LOGGING_ENABLED 0
 #define DEBUG_LOGGING 0
 #define DEBUG_LOGGING_TIMER_HANDLER 0
-#define ERROR_LOGGING 1
+#define ERROR_LOGGING 0
 #define DEBUG_SET_RCV_PORT_TO_SND_PORT 0
 #define DEBUG_DONT_CHECK_ACK 0
 #define DEBUG_FIXED_LOG_FILENAME "../log/debug_log.csv"

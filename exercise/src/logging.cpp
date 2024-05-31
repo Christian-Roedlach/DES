@@ -26,7 +26,8 @@ void thread_logging(node_state_t *node_state, nw_multicast_descriptor_t *nw_desc
     
     if (EXIT_SUCCESS == retval)
     {
-        while (EXIT_SUCCESS == node_state->errorstate) 
+        /* allow errSt_running and errSt_retry to continue thread */
+        while (errSt_restart > node_state->errorstate) 
         {
             {
                 std::lock_guard<std::mutex> lock(node_state->gpio_event_registered_mutex);
@@ -52,7 +53,7 @@ void thread_logging(node_state_t *node_state, nw_multicast_descriptor_t *nw_desc
                 }
                 else
                 {
-                    node_state->errorstate = EXIT_FAILURE;
+                    node_state->errorstate = errSt_restart;
                     std::cerr << "ERROR: logfile is not open anymore! --> " << nw_desc->logfile_name << std::endl;
                     std::cerr << "errno: " << errno << ": " << strerror( errno ) << std::endl;
                 }
@@ -67,9 +68,25 @@ void thread_logging(node_state_t *node_state, nw_multicast_descriptor_t *nw_desc
     }
     else
     {
-        node_state->errorstate = EXIT_FAILURE;
+        node_state->errorstate = errSt_restart;
         std::cerr << "ERROR: thread_logging not initialized!" << std::endl;
     }
 
     logfile.close();
+}
+
+void write_syslog(std::string message, int log_type)
+{
+    setlogmask (LOG_UPTO (LOG_INFO));
+    openlog (SYSLOG_NAME, LOG_PERROR | LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog (log_type, "%s", message.c_str());
+    closelog ();
+}
+
+void syslog_program_start(void)
+{
+    setlogmask (LOG_UPTO (LOG_INFO));
+    openlog (SYSLOG_NAME, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    syslog (LOG_NOTICE, "Program started by User %d", getuid ());
+    closelog ();
 }

@@ -10,7 +10,10 @@
 #include <iostream>
 #include "timesync.h"
 #include "lib.h"
+#include "logging.h"
+#include <error.h>
 
+static inline errorstate_t recvfrom_error_handling(node_state_t *node_state);
 
 int socket_slave_multicast(nw_multicast_descriptor_t *descriptor) 
 {
@@ -159,13 +162,13 @@ int set_socket_address(char *ip_address, char *port,
     return retval;
 }
 
-int recieve_multicast(
+errorstate_t recieve_multicast(
         node_state_t *node_state,
         nw_multicast_descriptor_t *descriptor)
 {
     using namespace drs_timesync;
 
-    int retval = EXIT_FAILURE;
+    errorstate_t retval = errSt_undefined;
     size_t message_lenght = 0;
     static const size_t message_length_expected = sizeof(node_message_t);
     socklen_t sockaddr_len = sizeof(struct sockaddr_in);
@@ -186,7 +189,7 @@ int recieve_multicast(
         #if ERROR_LOGGING
         std::cerr << "ERROR: recvfrom FAILED: " << strerror(errno); // endl is done by thread
         #endif // ERROR_LOGGING
-        retval = EXIT_FAILURE;
+        retval = recvfrom_error_handling(node_state);
     } 
     else if (message_length_expected != message_lenght)
     {
@@ -195,14 +198,18 @@ int recieve_multicast(
                 message_length_expected << 
                 ", received: "<< message_lenght; // endl is done by thread
         #endif // ERROR_LOGGING
-        retval = EXIT_FAILURE;
+        retval = errSt_retry;
     } 
     else
-        retval = EXIT_SUCCESS;
+        retval = errSt_running;
 
-    if (EXIT_SUCCESS == retval)
+    if (errSt_running == retval)
     {
-        retval = sync_local_time(node_state, &descriptor->message_rcv);
+        if (EXIT_SUCCESS == sync_local_time(node_state, &descriptor->message_rcv))
+            retval = errSt_running;
+        else
+            retval = errSt_retry;
+
     #if (DEBUG_LOGGING)
         std:: cout << 
                 "Received message: CRC=" << descriptor->message_rcv.crc <<
@@ -219,7 +226,7 @@ void thread_receive(
     nw_multicast_descriptor_t *descriptor)
 {
     uint32_t error_count = 0;
-    int retval = EXIT_FAILURE;
+    errorstate_t retval = errSt_undefined;
     const uint32_t error_count_out_of_sync = (TIMEOUT_OUT_OF_SYNC_MS * 1000) / TIMEOUT_US;
 
 #if DEBUG_LOGGING
@@ -231,35 +238,42 @@ void thread_receive(
     retval = clock_gettime(CLOCK_MONOTONIC, &timestamp_start);
 #endif // DEBUG_LOGGING
 
-    while (RECEIVE_ERROR_COUNT_MAX > error_count)
+    while(errSt_restart > node_state->errorstate)
     {
-        retval = recieve_multicast(node_state, descriptor);
-        if (EXIT_SUCCESS == retval)
-            error_count = 0;
-        else
+        if (RECEIVE_ERROR_COUNT_MAX > error_count)
         {
-            error_count++;
-            #if ERROR_LOGGING
-            std::cerr << ", error_count: " << error_count;
-            #endif // ERROR_LOGGING
-            if(error_count >= error_count_out_of_sync)
+            retval = recieve_multicast(node_state, descriptor);
+            if (errSt_running == retval)
+                error_count = 0;
+            else
             {
-                {
-                    std::lock_guard<std::mutex> lock(node_state->timestamp_mutex);
-                    node_state->time_synced = 0;
-                }
-                /* mutex is released */
+                error_count++;
                 #if ERROR_LOGGING
-                    std::cerr << ", TIME sync LOST!";
+                std::cerr << ", error_count: " << error_count;
+                #endif // ERROR_LOGGING
+                if(error_count >= error_count_out_of_sync)
+                {
+                    {
+                        std::lock_guard<std::mutex> lock(node_state->timestamp_mutex);
+                        node_state->time_synced = 0;
+                    }
+                    /* mutex is released */
+                    #if ERROR_LOGGING
+                        std::cerr << ", TIME sync LOST!";
+                    #endif // ERROR_LOGGING
+                }
+                #if ERROR_LOGGING
+                std::cerr << std::endl;
                 #endif // ERROR_LOGGING
             }
-            #if ERROR_LOGGING
-            std::cerr << std::endl;
-            #endif // ERROR_LOGGING
+        } 
+        else 
+        {
+            write_syslog("network: maximum number of receive timeout errors reached - restarting...", LOG_ERR);
+            node_state->errorstate = errSt_restart;
+            break;
         }
     }
-
-    node_state->errorstate = EXIT_FAILURE;
 
 #if DEBUG_LOGGING
     retval = clock_gettime(CLOCK_MONOTONIC, &timestamp_end);
@@ -273,5 +287,73 @@ void thread_receive(
     std::cout << "THREAD: receive STOPPED!"<<std::endl;
     std::cout << "Thread receive execution time: " << timestamp_diff_double << " s" << std::endl;
 #endif // DEBUG_LOGGING
+}
+
+static inline errorstate_t recvfrom_error_handling(node_state_t *node_state)
+{
+    std::string message = "recvfrom: STOP + disable service; errno: ";
+    bool write_to_syslog = false;
+    errorstate_t errorstate = errSt_undefined;
+
+    message.append(std::to_string(errno));
+    message.append(": ");
+    message.append(strerror(errno));
+
+    switch (errno)
+    {
+        /* A - STOP + syslog + deaktivieren von Service */
+        case EBADF:
+        case ECONNREFUSED:
+        case EFAULT:
+        case EINVAL:
+        case ENOTSOCK:
+        case EACCES:
+        /* case BLOCK - unknown errorcode */
+
+            message.append(" --> STOP + disable service");
+            errorstate = srrSt_stop_disable_service;
+            write_to_syslog = true;
+
+            break;
+
+        /* B - SEGFAULT + Erkennung von Restart und deaktivieren von Service */
+        case ECONNABORTED:
+        case EPERM:
+
+            message.append(" --> SEGFAULT: disable service after restart");
+            errorstate = errSt_segfault;
+            write_to_syslog = true;
+
+            break;
+
+        /* Retry (in code) + delay + counter mit STOP nach zu vielen Versuchen */
+        case EAGAIN:  /* timeout */
+            errorstate = errSt_retry;
+            write_to_syslog = false;
+            break;
+
+        /* E STOP + syslog + ohne deaktivieren von Service */
+        case EBUSY:
+        case EINTR: // os restart
+
+            message.append(" --> STOP: leave service enabled");
+            errorstate = errSt_stop_leave_service;
+
+            break;
+
+        /* D - Restart (durch Service) + counter mit STOP nach zu vielen Versuchen */
+        /* wrong sender - how is that possible with broadcast? ERRNO not found... */
+        default:
+             message.append(" --> RESTART (by service)");  
+            
+    }
+
+    if (errorstate > node_state->errorstate)
+        node_state->errorstate = errorstate;
+
+    if (write_to_syslog)
+        write_syslog("recvfrom: STOP + disable service; errno: ", LOG_CRIT);
+    
+    return errorstate;
 }
 
