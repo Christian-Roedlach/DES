@@ -24,7 +24,7 @@ int main (int argc, char** argv)
 {
     int retval = EXIT_FAILURE;
     node_state_t node_state;
-    node_state.time_synced = 1;
+    //node_state.time_synced = 1;
     nw_multicast_descriptor_t nw_desc;
 
     setlinebuf(stdout);
