@@ -15,6 +15,9 @@
 #define GPIO_PIN 2
 #define RASPBERRY_PI 0
 
+#define CRC_POLY    0x1021
+#define CRC_INIT    0xFFFF
+
 #define THREAD_PRIORITY_RECEIVE 80 // 0=low to 99=high
 #define THREAD_PRIORITY_TIMER 99 // 0=low to 99=high
 #define THREAD_PRIORITY_SIGNAL_PIN 90

@@ -15,10 +15,60 @@ T abs_diff(T a, T b)
     return a > b ? a - b : b - a;
 }
 
+
+
 static inline int crc_check(node_message_t *message)
 {
-    #warning "TODO: to be implemented"
-    return EXIT_SUCCESS;
+
+    uint16_t crc = CRC_INIT ; // Initial value
+    uint8_t data[10]; // 8 bytes timestamp + 2 bytes msc_cnt
+    
+    /* little endian conversion
+    // Convert timestamp to little-endian byte order
+    for (int i = 0; i < 8; i++) {
+        data[i] = (message->timestamp >> (i * 8)) & 0xFF;
+    }
+    // Convert msc_cnt to little-endian byte order
+    data[8] = message->msg_cnt & 0xFF;
+    data[9] = (message->msg_cnt >> 8) & 0xFF;
+    */
+
+    
+    // Directly copy timestamp and msc_cnt into the byte array
+    for (int i = 0; i < 8; i++) {
+        data[i] = ((uint8_t*)&message->timestamp)[i];
+    }
+
+    data[8] = ((uint8_t*)&message->msg_cnt)[0];
+    data[9] = ((uint8_t*)&message->msg_cnt)[1];
+    
+    // Calc CRC16
+    for (size_t i = 0; i < 10; i++) {
+        crc ^= (uint16_t)data[i] << 8;
+        for (int j = 0; j < 8; j++) {
+            if (crc & 0x8000) {
+                crc = (crc << 1) ^ CRC_POLY;
+            } else {
+                crc = crc << 1;
+            }
+        }
+    }
+    
+    // return 0 if checksumms match
+    if(message->crc == crc)
+    {
+        #if DEBUG_LOGGING
+                std::cout << "CRC check passed" << std::endl;
+        #endif // DEBUG_LOGGING
+
+        return EXIT_SUCCESS;
+    }
+
+    #if ERROR_LOGGING
+        std::cout << "CRC check failed" << std::endl;    
+    #endif // ERROR_LOGGING
+
+    return EXIT_FAILURE;
 }
 
 static inline int sync_local_time(
