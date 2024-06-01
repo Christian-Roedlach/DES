@@ -229,15 +229,6 @@ void thread_receive(
     errorstate_t retval = errSt_undefined;
     const uint32_t error_count_out_of_sync = (TIMEOUT_OUT_OF_SYNC_MS * 1000) / TIMEOUT_US;
 
-#if DEBUG_LOGGING
-    struct timespec timestamp_start = {};
-    struct timespec timestamp_end = {};
-    struct timespec timestamp_diff = {};
-    double timestamp_diff_double = 0;
-
-    retval = clock_gettime(CLOCK_MONOTONIC, &timestamp_start);
-#endif // DEBUG_LOGGING
-
     while(errSt_restart > get_errorstate(node_state))
     {
         if (RECEIVE_ERROR_COUNT_MAX > error_count)
@@ -278,19 +269,6 @@ void thread_receive(
             break;
         }
     }
-
-#if DEBUG_LOGGING
-    retval = clock_gettime(CLOCK_MONOTONIC, &timestamp_end);
-
-    if (EXIT_SUCCESS == retval)
-    {
-        timespec_diff(&timestamp_end, &timestamp_start, &timestamp_diff);
-        timespec_to_double(&timestamp_diff, &timestamp_diff_double);
-    }
-
-    std::cout << "THREAD: receive STOPPED!"<<std::endl;
-    std::cout << "Thread receive execution time: " << timestamp_diff_double << " s" << std::endl;
-#endif // DEBUG_LOGGING
 }
 
 static inline errorstate_t recvfrom_error_handling(node_state_t *node_state)
