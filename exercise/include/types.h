@@ -22,13 +22,13 @@ typedef struct  __attribute__ ((__packed__)) {
 } node_message_t;
 
 typedef enum {
+    errSt_undefined = -1,
     errSt_running = 0,
     errSt_retry,
     errSt_restart,
     errSt_stop_leave_service,
     srrSt_stop_disable_service,
     errSt_segfault,
-    errSt_undefined = -1,
 } errorstate_t;
 
 typedef struct {
@@ -40,6 +40,7 @@ typedef struct {
     int gpio_event_registered_sync_status = 0;
     std::mutex gpio_event_registered_mutex;
     int time_synced = 0;
+    std::mutex errorstate_mutex;
     errorstate_t errorstate = errSt_running;
 } node_state_t;
 
@@ -47,5 +48,19 @@ typedef struct {
     uint32_t id;
     double roundtrip_time;
 } data_cache_t;
+
+static inline errorstate_t get_errorstate(node_state_t *node_state)
+{
+    std::lock_guard<std::mutex> lock(node_state->errorstate_mutex);
+    return node_state->errorstate;
+    /* mutex is released at end of function */
+}
+
+static inline void set_errorstate(node_state_t *node_state, errorstate_t errorstate)
+{
+    std::lock_guard<std::mutex> lock(node_state->errorstate_mutex);
+    node_state->errorstate = errorstate;
+    /* mutex is released at end of function */
+}
 
 #endif // TYPES_H

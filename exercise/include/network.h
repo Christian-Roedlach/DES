@@ -28,10 +28,13 @@ int set_socket_address(
 		char *ip_address, 
 		char *port, 
         struct sockaddr_in *addr);
+
 errorstate_t recieve_multicast(
 		node_state_t *node_state, 
 		nw_multicast_descriptor_t *descriptor);
+
 int socket_slave_multicast(nw_multicast_descriptor_t *descriptor);
+
 void thread_receive(
 	node_state_t *node_state,
     nw_multicast_descriptor_t *descriptor);

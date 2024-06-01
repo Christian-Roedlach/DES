@@ -51,7 +51,7 @@ void thread_timer(node_state_t *node_state)
     if (EXIT_SUCCESS == retval)
     {
         /* allow errSt_running and errSt_retry to continue thread */
-        while (errSt_restart > node_state->errorstate) 
+        while (errSt_restart > get_errorstate(node_state)) 
         {
             sleep(1);  
         }
@@ -65,7 +65,7 @@ void thread_timer(node_state_t *node_state)
     else
     {
         write_syslog("setting up TIMER failed!", LOG_CRIT);
-        node_state->errorstate = srrSt_stop_disable_service;
+        set_errorstate(node_state, srrSt_stop_disable_service);
     } 
 }
 

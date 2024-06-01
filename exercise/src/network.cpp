@@ -238,7 +238,7 @@ void thread_receive(
     retval = clock_gettime(CLOCK_MONOTONIC, &timestamp_start);
 #endif // DEBUG_LOGGING
 
-    while(errSt_restart > node_state->errorstate)
+    while(errSt_restart > get_errorstate(node_state))
     {
         if (RECEIVE_ERROR_COUNT_MAX > error_count)
         {
@@ -270,7 +270,7 @@ void thread_receive(
         else 
         {
             write_syslog("network: maximum number of receive timeout errors reached - restarting...", LOG_ERR);
-            node_state->errorstate = errSt_restart;
+            set_errorstate(node_state, errSt_restart);
             break;
         }
     }
@@ -348,8 +348,8 @@ static inline errorstate_t recvfrom_error_handling(node_state_t *node_state)
             
     }
 
-    if (errorstate > node_state->errorstate)
-        node_state->errorstate = errorstate;
+    if (errorstate > get_errorstate(node_state))
+        set_errorstate(node_state, errorstate);
 
     if (write_to_syslog)
         write_syslog("recvfrom: STOP + disable service; errno: ", LOG_CRIT);

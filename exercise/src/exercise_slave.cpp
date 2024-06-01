@@ -63,7 +63,7 @@ int main (int argc, char** argv)
         fprintf(stderr, "Error occured: %s\n\n", strerror( errno ));
 
     /* set program return value to corresponding enum value */
-    retval = node_state.errorstate;
+    retval = get_errorstate(&node_state);
 
 #if DEBUG_LOGGING
     std::cout << "Program exits with node_state.errorstate = " << retval << std::endl;

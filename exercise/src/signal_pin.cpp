@@ -41,7 +41,7 @@ void thread_signal_pin(int pin, node_state_t *node_state)
     if (EXIT_SUCCESS == retval)
     {
         /* allow errSt_running and errSt_retry to continue thread */
-        while (errSt_restart > node_state->errorstate) 
+        while (errSt_restart > get_errorstate(node_state)) 
         {
             #if (RASPBERRY_PI)
                 sleep(1);  
@@ -67,7 +67,7 @@ void thread_signal_pin(int pin, node_state_t *node_state)
     {
         #if (RASPBERRY_PI)
             write_syslog("setting up GPIO interrupt thread failed!", LOG_ERR);
-            node_state->errorstate = errSt_restart;
+            set_errorstate(node_state, errSt_restart);
         #else  // RASPBERRY_PI
             #warning "signal pin exit program DISABLED (for PC development)"
             std::cerr << "ERROR: setting up signal_pin_header FAILED!" << std::endl;
