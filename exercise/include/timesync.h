@@ -65,7 +65,7 @@ static inline int crc_check(node_message_t *message)
         #if DEBUG_LOGGING
                 std::cout << "CRC check passed" << std::endl;
         #endif // DEBUG_LOGGING
-
+       
         retval = EXIT_SUCCESS;
     }else
     {

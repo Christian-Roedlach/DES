@@ -11,26 +11,19 @@
 #include <string.h>
 #include <errno.h>
 #include <iostream>
+#include <types.h>
 
 
 static int port = 12345;
 
-struct message {
-    uint64_t timestamp;
-    uint16_t msg_cnt;
-    uint16_t crc;
-};
 
 int main (int argc, char** argv)
 {
     int retval = EXIT_FAILURE;
     int socket_descriptor;
     struct sockaddr_in address;
-    struct message msg;
+    node_message_t msg;
     uint16_t message_id = 0;
-    struct timespec req = {0};
-    req.tv_sec = 0;
-    req.tv_nsec = 5 * 1000000L; // 5 ms
 
     socket_descriptor = socket (AF_INET, SOCK_DGRAM, 0);
     if (socket_descriptor == -1) {
@@ -46,31 +39,33 @@ int main (int argc, char** argv)
     /* Broadcasting beginnen */
 
     while (1) {
-        // Get current timestamp
-        struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
-        msg.timestamp = (uint64_t)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-
-        msg.msg_cnt = message_id++;
-
         // Calc CRC
 
-        uint16_t crc = CRC_INIT ; // Initial value
-        uint8_t *data = (uint8_t*) &msg; 
+        
 
-        for (size_t i = 0; i < sizeof(node_message_t)-2; i++) {
-        crc ^= (uint16_t)data[i] << 8;
-        for (int j = 0; j < 8; j++) {
+
+
+        if(0 == (msg.timestamp%10) )
+        {
+
+            msg.msg_cnt = message_id++;
+
+            uint16_t crc = CRC_INIT ; // Initial value
+            uint8_t *data = (uint8_t*) &msg; 
+
+            for (size_t i = 0; i < sizeof(node_message_t)-2; i++) {
+            crc ^= (uint16_t)data[i] << 8;
+            for (int j = 0; j < 8; j++) {
             if (crc & 0x8000) {
                 crc = (crc << 1) ^ CRC_POLY;
             } else {
                 crc = crc << 1;
             }
-        }
-    }
-
-        // Send the message
-        if (sendto(socket_descriptor,
+            }
+            }
+            msg.crc = crc;
+            // Send the message
+            if (sendto(socket_descriptor,
                    &msg,
                    sizeof(msg),
                    0,
@@ -78,10 +73,14 @@ int main (int argc, char** argv)
                    sizeof(address)) < 0) {
             perror("sendto()");
             exit(EXIT_FAILURE);
+            }
+            std::cout << "msg_ID=" << msg.msg_cnt << ", Timestamp=" << msg.timestamp << ", CRC=" << msg.crc << std::endl;
+            
+
         }
-        std::cout<< "msg"<<std::endl;
         // Sleep for 5 ms
-        nanosleep(&req, NULL);
+        usleep(5000);
+        msg.timestamp = msg.timestamp+1;
     }
 
     return retval;
