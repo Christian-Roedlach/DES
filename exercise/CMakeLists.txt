@@ -14,8 +14,7 @@ include_directories(./include/)
 #target_link_libraries (master)
 
 add_executable (slave_node 
-    src/slave_node.cpp 
-    src/lib.cpp 
+    src/slave_node_main.cpp 
     src/network.cpp
     src/timesync.cpp
     src/lib-timer.cpp
