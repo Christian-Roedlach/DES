@@ -22,6 +22,7 @@ typedef struct  __attribute__ ((__packed__)) {
 } node_message_t;
 
 typedef enum {
+    errSt_terminatedFromOutside = -2,
     errSt_undefined = -1,
     errSt_running = 0,
     errSt_retry,
@@ -29,6 +30,8 @@ typedef enum {
     errSt_stop_leave_service,
     srrSt_stop_disable_service,
     errSt_segfault,
+
+    errSt_count
 } errorstate_t;
 
 typedef struct {
@@ -42,6 +45,7 @@ typedef struct {
     int time_synced = 0;
     std::mutex errorstate_mutex;
     errorstate_t errorstate = errSt_running;
+    uint32_t restart_error_count = 0;
 } node_state_t;
 
 typedef struct {

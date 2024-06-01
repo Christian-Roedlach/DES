@@ -10,10 +10,10 @@
 - thread timer - checked
 - thread logging - checked
 - thread receive - checked
-- error handling - open
+- error handling - checked
 - test_master - open
 - test on RPi (pin interrupt) - open
-- services (systemd/systemctl) - open
+- services (systemd/systemctl) - checked
 
 ## notes
 - check thread/process priorities - checked

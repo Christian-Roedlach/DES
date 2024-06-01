@@ -244,7 +244,11 @@ void thread_receive(
         {
             retval = recieve_multicast(node_state, descriptor);
             if (errSt_running == retval)
+            {
+                /* reset error_count and program restart count on successful sync */
                 error_count = 0;
+                node_state->restart_error_count = 0;    
+            }
             else
             {
                 error_count++;
