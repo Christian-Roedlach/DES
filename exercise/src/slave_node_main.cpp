@@ -10,14 +10,16 @@
 #include <math.h>
 #include <iostream>
 #include <thread>
+#include <signal.h>
 
 
 #define USAGE "Usage:  \
-./exercise_slave <Multicast Address> <Port Number>\n\n"
+./exercise_slave <Multicast Address> <Port Number> <log Filename>\n\n"
 
 
 int parse_arguments (int argc, char** argv, nw_multicast_descriptor_t *nw_desc);
 void setup_thread_priority(std::thread *thread, int priority, int type);
+void sigint_handler(int signum);
 
 
 int main (int argc, char** argv)
@@ -26,12 +28,37 @@ int main (int argc, char** argv)
     node_state_t node_state;
     //node_state.time_synced = 1;
     nw_multicast_descriptor_t nw_desc;
+    errorstate_t errorstate = errSt_undefined;
 
     setlinebuf(stdout);
 
     syslog_program_start();
 
-    retval = parse_arguments(argc, argv, &nw_desc);
+
+
+    /* register atexit handler to handle user termination e.g. CTRL+C */
+    //retval = std::atexit(atexit_handler);
+    sighandler_t sigint_handler_retval = signal(SIGINT, sigint_handler);
+    if (SIG_ERR != sigint_handler_retval)
+        retval = EXIT_SUCCESS;    
+
+    if (EXIT_SUCCESS != retval)
+    {
+        write_syslog("registering atexit_handler FAILED!", LOG_CRIT);
+    }
+    else
+    {
+        errorstate = check_previous_execution_state(&node_state.restart_error_count);
+        retval = process_previous_execution_state(&errorstate, &node_state.restart_error_count);
+
+        if (EXIT_SUCCESS == retval)
+            /* write segfault to exit state file to detect SEGMENTATION FAULTS 
+               file is overwritten on normal program exit   */
+            retval = write_program_exit_status(errSt_segfault, node_state.restart_error_count, false);
+    }          
+
+    if (EXIT_SUCCESS == retval)
+        retval = parse_arguments(argc, argv, &nw_desc);
        
     if (EXIT_SUCCESS == retval)
         retval = socket_slave_multicast(&nw_desc);
@@ -55,9 +82,23 @@ int main (int argc, char** argv)
         timer_thread.join();
         receive_thread.join();
     }
+
+    /* config or initialization error (also triggered by too many restarts)*/
+    if (EXIT_SUCCESS != retval)
+        set_errorstate(&node_state, srrSt_stop_disable_service);
          
     if (-1 != nw_desc.socket_file_descriptor)
         retval = close(nw_desc.socket_file_descriptor);
+
+    if (EXIT_SUCCESS != retval)
+        fprintf(stderr, "Error occured: %s\n\n", strerror( errno ));
+
+    if (get_errorstate(&node_state) == errSt_restart)
+        node_state.restart_error_count++;
+    else
+        node_state.restart_error_count = 0; // reset counter if successful
+
+    retval = write_program_exit_status(get_errorstate(&node_state), node_state.restart_error_count);
 
     if (EXIT_SUCCESS != retval)
         fprintf(stderr, "Error occured: %s\n\n", strerror( errno ));
@@ -68,6 +109,7 @@ int main (int argc, char** argv)
 #if DEBUG_LOGGING
     std::cout << "Program exits with node_state.errorstate = " << retval << std::endl;
 #endif // DEBUG_LOGGING
+
     return retval;
 }
 
@@ -121,6 +163,22 @@ void setup_thread_priority(std::thread *thread, int priority, int type)
         std::cerr << "Failed to set Thread scheduling : " << strerror(errno) <<
                 " - root privileges required" << std::endl;
     }
+}
+
+void sigint_handler(int signum)
+{
+    int retval = EXIT_FAILURE;
+    
+    retval = write_program_exit_status(errSt_terminatedFromOutside, 0);
+
+    std::cout << "sigint_handler - signal was: " << signum << std::endl;
+
+    if (EXIT_SUCCESS != retval)
+        write_syslog("was not able to write exit status!", LOG_CRIT);
+
+    write_syslog("sigint_handler reached: program terminated by user!", LOG_NOTICE);
+
+    exit(static_cast<int>(errSt_terminatedFromOutside));
 }
 
 

@@ -5,6 +5,7 @@
 #include "network.h"
 #include <cmath>
 #include <iostream>
+#include "logging.h"
 
 namespace drs_timesync
 {
@@ -102,7 +103,9 @@ static inline int sync_local_time(
             /* mutex is released */
             if (TIMESTAMP_MAX_DEVIATION_VALUE_TICKS < abs_diff(new_timestamp, previous_timestamp))
             {
-                #warning "TODO: Error handling has to be implemented";
+                std::string message = "WARNING: deviation was too big: system - master = ";
+                message.append(std::to_string(previous_timestamp - new_timestamp));
+                write_syslog(message, LOG_WARNING);
                 
                 #if ERROR_LOGGING
                 std::cout << "WARNING: deviation was too big: " << abs_diff(new_timestamp, previous_timestamp) << std::endl;

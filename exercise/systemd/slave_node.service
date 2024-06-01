@@ -1,0 +1,14 @@
+[Unit]
+Description=DES slave node group 2
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/slave_node_wrapper.sh
+Restart=always
+RestartSec=3
+# required to set the task priorities
+User=root
+
+[Install]
+WantedBy=multi-user.target

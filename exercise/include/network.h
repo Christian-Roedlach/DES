@@ -9,7 +9,7 @@
 #include <settings.h>
 
 /* DEBUG option to set multicast address and port statically */
-#define DEBUG_FIXED_ADDRESSES_ENABLED 1
+#define DEBUG_FIXED_ADDRESSES_ENABLED 0
 #define DEBUG_FIXED_ADDRESSES_PORT "12345"
 #define DEBUG_FIXED_ADDRESSES_ADDR "224.0.0.1"
 
