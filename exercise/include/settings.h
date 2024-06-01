@@ -2,7 +2,7 @@
 #define SETTINGS_H
 
 #define RASPBERRY_PI 1
-#define GPIO_PIN 2
+#define GPIO_PIN 2  // GPIO27 PIN13
 #define RESTART_COUNTER_MAX 10
 #define RECEIVE_ERROR_COUNT_MAX (500)
 
