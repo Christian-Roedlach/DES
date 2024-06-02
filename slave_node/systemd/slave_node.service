@@ -4,6 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
+# wait for network to come up
+ExecStartPre=/bin/sleep 10 
 ExecStart=/usr/local/bin/slave_node_wrapper.sh
 Restart=always
 RestartSec=3

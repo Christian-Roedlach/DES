@@ -34,10 +34,7 @@ int main (int argc, char** argv)
 
     syslog_program_start();
 
-
-
-    /* register atexit handler to handle user termination e.g. CTRL+C */
-    //retval = std::atexit(atexit_handler);
+    /* register signal handler to handle user termination e.g. CTRL+C */
     sighandler_t sigint_handler_retval = signal(SIGINT, sigint_handler);
     if (SIG_ERR != sigint_handler_retval)
         retval = EXIT_SUCCESS;    
