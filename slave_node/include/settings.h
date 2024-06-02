@@ -21,7 +21,7 @@
 #define EXECUTION_STATE_FAILURE_COUNT "failure_count"
 
 #define CRC_POLY    0x1021
-#define CRC_INIT    0xFFFF
+#define CRC_INIT    0x0000
 
 #define THREAD_PRIORITY_RECEIVE 80 // 0=low to 99=high
 #define THREAD_PRIORITY_TIMER 99 // 0=low to 99=high

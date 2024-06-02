@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include "logging.h"
+#include <string.h>
 
 namespace drs_timesync
 {
@@ -22,33 +23,10 @@ static inline int crc_check(node_message_t *message)
 {
     int retval = EXIT_FAILURE;
     uint16_t crc = CRC_INIT ; // Initial value
-    uint8_t *data = (uint8_t*) message; // 8 bytes timestamp + 2 bytes msc_cnt
+    uint8_t *data = (uint8_t *) &message->msg_cnt; // 2 bytes msc_cnt + 8 bytes timestamp
     
-    /* little endian conversion
-    // Convert timestamp to little-endian byte order
-    for (int i = 0; i < 8; i++) {
-        data[i] = (message->timestamp >> (i * 8)) & 0xFF;
-    }
-    // Convert msc_cnt to little-endian byte order
-    data[8] = message->msg_cnt & 0xFF;
-    data[9] = (message->msg_cnt >> 8) & 0xFF;
-    */
-
-    /*
-    // Directly copy timestamp and msc_cnt into the byte array
-    for (int i = 0; i < 8; i++) {
-        data[i] = ((uint8_t*)&message->timestamp)[i];
-
-    }
-    
-
-
-    data[8] = ((uint8_t*)&message->msg_cnt)[0];
-    data[9] = ((uint8_t*)&message->msg_cnt)[1];
-    */
-    
-    // Calc CRC16
-    for (size_t i = 0; i < sizeof(node_message_t)-2; i++) {
+    // Calc CRC16    
+    for (size_t i = 0; i < 10; i++) {
         crc ^= (uint16_t)data[i] << 8;
         for (int j = 0; j < 8; j++) {
             if (crc & 0x8000) {
@@ -71,10 +49,9 @@ static inline int crc_check(node_message_t *message)
     {
         retval = EXIT_FAILURE;
         #if ERROR_LOGGING
-                std::cerr << "CRC check failed" << std::endl;    
+                std::cerr << "CRC check failed: msg: " << std::hex << message->crc << "calc: " << std::hex << crc << std::endl;    
         #endif // ERROR_LOGGING
     }
-
 
     return retval;
 }
