@@ -35,7 +35,7 @@ GPIO27 PIN13
 
 ## Clone repository
 
-git clone https://github.com/Christian-Roedlach/DES.git
+    git clone https://github.com/Christian-Roedlach/DES.git
 
 ## Compilation
 
