@@ -79,6 +79,9 @@ The logfiles are stored to directory /var/log/slave_node
 
 The program logs are written to /var/log/syslog.
 
+    # install on RPi bookworm
+    sudo apt install rsyslog
+    
     cat /var/log/syslog | grep -a 'slave_node'
 
 ## RPi static IP

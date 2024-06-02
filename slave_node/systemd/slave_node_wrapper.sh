@@ -1,5 +1,5 @@
 #!/bin/bash
-mkdir /var/log/slave_node
+mkdir -p /var/log/slave_node
 cd /var/log/slave_node
 
 # Run the program
