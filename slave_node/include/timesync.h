@@ -101,10 +101,20 @@ static inline int sync_local_time(
                 node_state->timestamp = new_timestamp;
             }
             /* mutex is released */
+
+            #if SET_MICROTICK_ON_MSG_RECEIVE
+            {
+                std::lock_guard<std::mutex> lock(node_state->microtick_mutex);
+                node_state->microtick = SET_MICROTICK_ON_MSG_RECEIVE_TO;
+            }
+            /* mutex is released */
+            #endif // SET_MICROTICK_ON_MSG_RECEIVE
+
             if (TIMESTAMP_MAX_DEVIATION_VALUE_TICKS < abs_diff(new_timestamp, previous_timestamp))
             {
                 std::string message = "WARNING: deviation was too big: system - master = ";
-                message.append(std::to_string(previous_timestamp - new_timestamp));
+                message.append(std::to_string(
+                        static_cast<int64_t>(static_cast<__int128_t>(previous_timestamp) - new_timestamp)));
                 write_syslog(message, LOG_WARNING);
                 
                 #if ERROR_LOGGING
@@ -112,7 +122,8 @@ static inline int sync_local_time(
                 #endif // ERROR_LOGGING
             }
             #if DEBUG_LOGGING
-                std::cout << "INFO: time deviation was (system - master): " << previous_timestamp - new_timestamp << std::endl;
+                std::cout << "INFO: time deviation was (system - master): " << 
+                        static_cast<int64_t>(static_cast<__int128_t>(previous_timestamp) - new_timestamp) << std::endl;
             #endif // DEBUG_LOGGING
         } 
         else
@@ -123,6 +134,14 @@ static inline int sync_local_time(
                 node_state->time_synced = 1;
             }
             /* mutex is released */
+
+            #if SET_MICROTICK_ON_MSG_RECEIVE
+            {
+                std::lock_guard<std::mutex> lock(node_state->microtick_mutex);
+                node_state->microtick = SET_MICROTICK_ON_MSG_RECEIVE_TO;
+            }
+            /* mutex is released */
+            #endif // SET_MICROTICK_ON_MSG_RECEIVE
         }
     }
 

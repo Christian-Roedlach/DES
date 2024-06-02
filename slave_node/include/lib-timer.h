@@ -4,5 +4,5 @@
 
 void thread_timer(node_state_t *node_state);
 void timer_handler(union sigval sv);
-int start_timer(node_state_t *node_state,timer_t *timerid);
+int start_timer(node_state_t *node_state, timer_t *timerid);
 void stop_timer(timer_t timerid);

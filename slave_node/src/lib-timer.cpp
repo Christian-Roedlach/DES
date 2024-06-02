@@ -32,13 +32,24 @@ void timer_handler(union sigval sv) {
     std::cout << "Counter previous value: " << node_state->timestamp << " , timediff: " << diff_sec << " s" << std::endl;
     #endif // DEBUG_LOGGING_TIMER_HANDLER
 
+#if SET_MICROTICK_ON_MSG_RECEIVE
+    {
+        std::lock_guard<std::mutex> lock(node_state->microtick_mutex);
+        node_state->microtick++;
+        microtick = node_state->microtick;
+    }
+    /* mutex is released */
+#else // SET_MICROTICK_ON_MSG_RECEIVE
+
     microtick++;
+
+#endif // SET_MICROTICK_ON_MSG_RECEIVE
 
     if (0 == (microtick % MAKROTICK_MULT))
     {
         std::lock_guard<std::mutex> lock(node_state->timestamp_mutex);
         node_state->timestamp++;
-    }
+    }    
 }
 
 void thread_timer(node_state_t *node_state) 

@@ -37,6 +37,8 @@ typedef enum {
 typedef struct {
     timestamp_t timestamp = 0;
     std::mutex timestamp_mutex;
+    uint32_t microtick = 0;
+    std::mutex microtick_mutex;
     // always lock all gpio_event variables !!
     bool gpio_event_registered = false;
     timestamp_t gpio_event_registered_timestamp = 0;

@@ -17,12 +17,12 @@
 static int port = 12345;
 
 
-int main (int argc, char** argv)
+int main (void)
 {
     int retval = EXIT_FAILURE;
     int socket_descriptor;
     struct sockaddr_in address;
-    node_message_t msg;
+    node_message_t msg = {0, 0, 0};
     uint16_t message_id = 0;
 
     socket_descriptor = socket (AF_INET, SOCK_DGRAM, 0);
@@ -40,11 +40,6 @@ int main (int argc, char** argv)
 
     while (1) {
         // Calc CRC
-
-        
-
-
-
         if(0 == (msg.timestamp%10) )
         {
 
@@ -54,14 +49,14 @@ int main (int argc, char** argv)
             uint8_t *data = (uint8_t*) &msg; 
 
             for (size_t i = 0; i < sizeof(node_message_t)-2; i++) {
-            crc ^= (uint16_t)data[i] << 8;
-            for (int j = 0; j < 8; j++) {
-            if (crc & 0x8000) {
-                crc = (crc << 1) ^ CRC_POLY;
-            } else {
-                crc = crc << 1;
-            }
-            }
+                crc ^= (uint16_t)data[i] << 8;
+                for (int j = 0; j < 8; j++) {
+                    if (crc & 0x8000) {
+                        crc = (crc << 1) ^ CRC_POLY;
+                    } else {
+                        crc = crc << 1;
+                    }
+                }
             }
             msg.crc = crc;
             // Send the message
