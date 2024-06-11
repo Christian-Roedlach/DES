@@ -16,8 +16,8 @@
 typedef uint64_t timestamp_t;
 
 typedef struct  __attribute__ ((__packed__)) {
-    timestamp_t timestamp;
     uint16_t msg_cnt;
+    timestamp_t timestamp;
     uint16_t crc;
 } node_message_t;
 
